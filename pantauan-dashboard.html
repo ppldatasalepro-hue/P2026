@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pantauan Pesanan Project 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d1117;--sf:#161b22;--sf2:#1c2128;--bd:#30363d;--bd2:#21262d;
+  --tx:#e6edf3;--txm:#7d8590;--txd:#484f58;
+  --bl:#1f6feb;--blb:#388bfd;--bls:#1f3a5c;
+  --gn:#3fb950;--gns:#1a3a24;
+  --or:#d29922;--ors:#3a2a0a;
+  --rd:#da3633;--rds:#3a1515;
+  --pu:#8b5cf6;--pus:#2a1a4a;
+  --tl:#0891b2;
+  --pk:#ec4899;
+  --r:8px;--f:'Plus Jakarta Sans',sans-serif;--m:'DM Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--f);background:var(--bg);color:var(--tx);min-height:100vh;font-size:13px}
+
+/* LOGIN */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 0%,#1f3a5c,#0d1117 60%)}
+.lcard{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:40px 48px;max-width:400px;width:90%;text-align:center}
+.lcard h1{font-size:20px;font-weight:800;margin-bottom:6px}
+.lcard p{color:var(--txm);font-size:12px;margin-bottom:24px;line-height:1.5}
+.btnms{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:11px 18px;background:var(--bl);color:#fff;border:none;border-radius:var(--r);font-family:var(--f);font-size:13px;font-weight:600;cursor:pointer}
+.btnms:hover{background:var(--blb)}
+.btnms svg{width:17px;height:17px;flex-shrink:0}
+
+/* CONFIG */
+#cfgm{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center}
+#cfgm.open{display:flex}
+.ccard{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:28px;width:90%;max-width:500px}
+.ccard h2{font-size:16px;font-weight:700;margin-bottom:16px}
+.cf{margin-bottom:12px}
+.cf label{display:block;font-size:10px;font-weight:700;color:var(--txm);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.cf input{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);padding:8px 11px;font-family:var(--m);font-size:11px;color:var(--tx);outline:none}
+.cf input:focus{border-color:var(--bl)}
+.cacts{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.btnp{padding:8px 18px;background:var(--bl);color:#fff;border:none;border-radius:var(--r);font-family:var(--f);font-size:12px;font-weight:600;cursor:pointer}
+.btnp:hover{background:var(--blb)}
+.btns{padding:8px 18px;background:transparent;color:var(--txm);border:1px solid var(--bd);border-radius:var(--r);font-family:var(--f);font-size:12px;cursor:pointer}
+.btns:hover{color:var(--tx)}
+
+/* APP */
+#app{display:none;flex-direction:column;min-height:100vh}
+#app.on{display:flex}
+header{background:var(--sf);border-bottom:1px solid var(--bd);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.hl{display:flex;align-items:center;gap:10px}
+.hl h2{font-size:14px;font-weight:700}
+.yb{background:var(--bls);color:var(--blb);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;font-family:var(--m)}
+.hr{display:flex;align-items:center;gap:8px}
+.up{display:flex;align-items:center;gap:7px;background:var(--sf2);border:1px solid var(--bd);border-radius:20px;padding:4px 10px 4px 4px}
+.ua{width:24px;height:24px;background:var(--bl);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.un{font-size:11px;font-weight:600;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bi{background:transparent;border:1px solid var(--bd);border-radius:var(--r);padding:5px 9px;color:var(--txm);font-size:11px;cursor:pointer;font-family:var(--f);transition:all .15s}
+.bi:hover{color:var(--tx);border-color:var(--txm)}
+
+main{flex:1;padding:18px 20px}
+
+/* CARDS */
+.scards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.sc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sc.bl::before{background:var(--blb)}.sc.or::before{background:var(--or)}
+.sc.tl::before{background:var(--tl)}.sc.pu::before{background:var(--pu)}
+.sc.gn::before{background:var(--gn)}.sc.pk::before{background:var(--pk)}
+.sclb{font-size:9px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.scv{font-size:20px;font-weight:800;font-family:var(--m);letter-spacing:-1px;line-height:1}
+.sc.bl .scv{color:var(--blb)}.sc.or .scv{color:var(--or)}
+.sc.tl .scv{color:var(--tl)}.sc.pu .scv{color:var(--pu)}
+.sc.gn .scv{color:var(--gn)}.sc.pk .scv{color:var(--pk)}
+.scsb{font-size:9px;color:var(--txd);margin-top:2px;font-family:var(--m)}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--bd);margin-bottom:14px}
+.tab{padding:8px 16px;font-size:12px;font-weight:600;color:var(--txm);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--tx)}
+.tab.active{color:var(--blb);border-bottom-color:var(--blb)}
+
+/* PIVOT TABLES */
+.pivot-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+@media(max-width:1100px){.pivot-grid{grid-template-columns:1fr}}
+.ptable-wrap{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.ptable-head{padding:10px 14px;border-bottom:1px solid var(--bd2);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ptable-head h3{font-size:11px;font-weight:700;flex:1}
+.exp-btns{display:flex;gap:5px;flex-shrink:0}
+.exp-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:600;font-family:var(--f);cursor:pointer;border:1px solid var(--bd);background:var(--sf2);color:var(--txm);transition:all .15s;white-space:nowrap}
+.exp-btn:hover{color:var(--tx);border-color:var(--txm)}
+.exp-btn.img{border-color:var(--pu);color:var(--pu);background:var(--pus)}
+.exp-btn.img:hover{background:var(--pu);color:#fff}
+.exp-btn.xls{border-color:var(--gn);color:var(--gn);background:var(--gns)}
+.exp-btn.xls:hover{background:var(--gn);color:#fff}
+.ptable-scroll{overflow-x:auto}
+.ptable{width:100%;border-collapse:collapse;font-size:11px}
+.ptable th{background:var(--sf2);padding:7px 12px;font-size:9px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--bd);white-space:nowrap;text-align:right}
+.ptable th:first-child{text-align:left}
+.ptable th.thdr{color:var(--blb)}
+.ptable td{padding:7px 12px;border-bottom:1px solid var(--bd2);white-space:nowrap;font-family:var(--m);font-size:11px;text-align:right}
+.ptable td:first-child{text-align:left;font-family:var(--f);font-weight:500}
+.ptable tr:last-child td{border-bottom:none}
+.ptable tr.trow td{background:var(--sf2);font-weight:700;border-top:2px solid var(--bd)}
+.ptable tr.trow td:first-child{color:var(--or)}
+.ptable tr:not(.trow):hover td{background:var(--sf2)}
+.vpos{color:var(--tx)}.vzero{color:var(--txd)}.vtot{color:var(--or);font-weight:700}
+.qgrp{background:var(--bls);color:var(--blb);font-weight:700;font-size:10px;text-align:center !important;border-right:1px solid var(--bd)}
+
+/* SHARED TABLE STYLES */
+.fbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:9px 13px;margin-bottom:10px}
+.fbar label{font-size:10px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px}
+.fbar select,.fbar input[type=text]{background:var(--bg);border:1px solid var(--bd);border-radius:5px;padding:5px 8px;color:var(--tx);font-size:11px;font-family:var(--f);outline:none}
+.fbar select{min-width:120px}
+.fbar input[type=text]{min-width:160px}
+.fbar select:focus,.fbar input:focus{border-color:var(--bl)}
+.fcnt{margin-left:auto;font-size:10px;color:var(--txm);font-family:var(--m)}
+.twrap{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow-x:auto}
+.pagi{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-top:1px solid var(--bd)}
+.pinfo{font-size:10px;color:var(--txm);font-family:var(--m)}
+.pbtns{display:flex;gap:4px}
+.pbtn{background:var(--sf2);border:1px solid var(--bd);color:var(--txm);padding:3px 8px;border-radius:5px;font-family:var(--f);font-size:10px;cursor:pointer}
+.pbtn:hover:not(:disabled){color:var(--tx);border-color:var(--txm)}
+.pbtn:disabled{opacity:.3;cursor:default}
+.pbtn.active{background:var(--bl);border-color:var(--bl);color:#fff}
+.rsel{background:var(--bg);border:1px solid var(--bd);border-radius:5px;padding:2px 6px;font-size:10px;color:var(--tx);font-family:var(--f);outline:none}
+
+/* GENERIC TABLE */
+.gtable{width:100%;border-collapse:collapse}
+.gtable thead th{background:var(--sf2);padding:6px 10px;font-size:9px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--bd);white-space:nowrap;cursor:pointer;text-align:left}
+.gtable thead th:hover{color:var(--tx)}
+.gtable thead th.sorted{color:var(--blb)}
+.gtable thead th.mr{text-align:right}
+.gtable tbody tr{border-bottom:1px solid var(--bd2)}
+.gtable tbody tr:hover{background:var(--sf2)}
+.gtable tbody tr:last-child{border-bottom:none}
+.gtable td{padding:6px 10px;color:var(--tx);white-space:nowrap;font-family:var(--m);font-size:11px}
+.gtable td.tc{font-family:var(--f)}
+.gtable td.mr{text-align:right}
+.gtable td:not(:last-child){border-right:1px solid var(--bd2)}
+
+/* DETAIL TABLE GROUP HEADERS */
+.dt-wrap table{min-width:2800px}
+.dt-wrap thead tr.grow th{background:#1a1f26;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:5px 9px;border-bottom:1px solid var(--bd);text-align:center;white-space:nowrap}
+.gh1{color:var(--blb);border-right:2px solid var(--bd)}
+.gh2{color:#f59e0b;border-right:2px solid var(--bd)}
+.gh3{color:#34d399;border-right:2px solid var(--bd)}
+.gh4{color:var(--or);border-right:2px solid var(--bd)}
+.gh5{color:var(--pu);border-right:2px solid var(--bd)}
+.gh6{color:var(--pk)}
+.dt-wrap table thead tr.colrow th{background:var(--sf2);padding:5px 9px;font-size:9px;font-weight:600;color:var(--txm);border-bottom:2px solid var(--bd);white-space:nowrap;cursor:pointer}
+.dt-wrap table thead tr.colrow th:hover{color:var(--tx)}
+.dt-wrap table thead tr.colrow th.sorted{color:var(--blb)}
+.dt-wrap table thead tr.colrow th:not(:last-child){border-right:1px solid var(--bd2)}
+.ge{border-right:2px solid var(--bd) !important}
+.dt-wrap table tbody tr{border-bottom:1px solid var(--bd2)}
+.dt-wrap table tbody tr:hover{background:var(--sf2)}
+.dt-wrap table tbody tr:last-child{border-bottom:none}
+.dt-wrap table td{padding:5px 9px;color:var(--tx);white-space:nowrap;font-family:var(--m);font-size:10px}
+.dt-wrap table td.tc{font-family:var(--f)}
+.dt-wrap table td.mr{text-align:right}
+.dt-wrap table td:not(:last-child){border-right:1px solid var(--bd2)}
+.dt-wrap table td.ge{border-right:2px solid var(--bd) !important}
+
+/* STATUS */
+#sbar{text-align:center;padding:60px 20px;color:var(--txm)}
+.spin{width:26px;height:26px;border:3px solid var(--bd);border-top-color:var(--blb);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 12px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.errm{color:var(--rd)}.errm a{color:var(--blb);cursor:pointer;text-decoration:underline}
+.erow td{text-align:center;padding:28px;color:var(--txd);font-family:var(--f)}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="lcard">
+    <div style="font-size:36px;margin-bottom:10px">📊</div>
+    <h1>Pantauan Pesanan Project</h1>
+    <p>Masuk dengan akun Microsoft untuk mengakses data laporan dari OneDrive.</p>
+    <button class="btnms" onclick="doLogin()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23 23"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="12" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="12" width="10" height="10" fill="#00A4EF"/><rect x="12" y="12" width="10" height="10" fill="#FFB900"/></svg>
+      Masuk dengan Microsoft
+    </button>
+  </div>
+</div>
+
+<div id="cfgm">
+  <div class="ccard">
+    <h2>⚙️ Konfigurasi File</h2>
+    <div class="cf"><label>Path File di OneDrive</label><input type="text" id="cfgp"/></div>
+    <div class="cf"><label>Baris Header (angka)</label><input type="number" id="cfgh"/></div>
+    <div class="cf"><label>Nama Sheet</label><input type="text" id="cfgs"/></div>
+    <div class="cacts">
+      <button class="btns" onclick="closeCfg()">Batal</button>
+      <button class="btnp" onclick="saveCfg()">Simpan & Muat</button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="hl">
+      <span style="font-size:18px">📊</span>
+      <h2>Pantauan Pesanan Project</h2>
+      <span class="yb">2026</span>
+    </div>
+    <div class="hr">
+      <button class="bi" onclick="openCfg()">⚙️ Konfigurasi</button>
+      <button class="bi" onclick="reload()">↺ Refresh</button>
+      <div class="up">
+        <div class="ua" id="uid">?</div>
+        <span class="un" id="uname">...</span>
+      </div>
+      <button class="bi" onclick="doLogout()">Keluar</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="sbar"><div class="spin"></div><div>Memuat data dari OneDrive...</div></div>
+
+    <div id="dash" style="display:none">
+
+      <!-- CARDS -->
+      <div class="scards">
+        <div class="sc bl"><div class="sclb">Total Pesanan</div><div class="scv" id="s0">0</div><div class="scsb">No. SP/PO unik</div></div>
+        <div class="sc or"><div class="sclb">Total Kontrak</div><div class="scv" id="s1">—</div><div class="scsb">nilai</div></div>
+        <div class="sc tl"><div class="sclb">Total RAB</div><div class="scv" id="s2">—</div><div class="scsb">nilai</div></div>
+        <div class="sc pu"><div class="sclb">Total HPP</div><div class="scv" id="s3">—</div><div class="scsb">nilai</div></div>
+        <div class="sc gn"><div class="sclb">Total FM</div><div class="scv" id="s4">—</div><div class="scsb">nilai</div></div>
+        <div class="sc pk"><div class="sclb">Netto</div><div class="scv" id="s5">—</div><div class="scsb">nilai</div></div>
+      </div>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('ringkasan')">📋 Ringkasan</div>
+        <div class="tab" onclick="switchTab('performa')">⚡ Performa</div>
+        <div class="tab" onclick="switchTab('rekap')">🗃️ Rekapitulasi</div>
+        <div class="tab" onclick="switchTab('detail')">🗂️ Data Detail</div>
+      </div>
+
+      <!-- ══ TAB: PERFORMA ══ -->
+      <div id="tab-performa" style="display:none">
+
+        <!-- Selector VS Ket Penggarap -->
+        <div style="display:flex;align-items:center;gap:12px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:12px 18px;margin-bottom:10px;flex-wrap:wrap">
+          <span style="font-size:10px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">Ket Penggarap:</span>
+          <select id="pf-a" onchange="renderPerforma()" style="background:var(--bg);border:1px solid var(--blb);border-radius:6px;padding:6px 12px;color:var(--blb);font-size:12px;font-weight:700;font-family:var(--f);outline:none;min-width:120px">
+            <option value="SR">SR</option>
+            <option value="REKANAN">REKANAN</option>
+            <option value="BM">BM</option>
+            <option value="MP">MP</option>
+            <option value="PUSAT">PUSAT</option>
+          </select>
+          <span style="font-size:16px;font-weight:800;color:var(--txd)">VS</span>
+          <select id="pf-b" onchange="renderPerforma()" style="background:var(--bg);border:1px solid var(--or);border-radius:6px;padding:6px 12px;color:var(--or);font-size:12px;font-weight:700;font-family:var(--f);outline:none;min-width:120px">
+            <option value="SR">SR</option>
+            <option value="REKANAN" selected>REKANAN</option>
+            <option value="BM">BM</option>
+            <option value="MP">MP</option>
+            <option value="PUSAT">PUSAT</option>
+          </select>
+        </div>
+
+        <!-- Selector VS PIC Omset -->
+        <div style="display:flex;align-items:center;gap:12px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:12px 18px;margin-bottom:16px;flex-wrap:wrap">
+          <span style="font-size:10px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">PIC Omset:</span>
+          <select id="pf-pic-a" onchange="renderPicH2H()" style="background:var(--bg);border:1px solid var(--gn);border-radius:6px;padding:6px 12px;color:var(--gn);font-size:12px;font-weight:700;font-family:var(--f);outline:none;min-width:140px">
+            <option value="">— Pilih PIC —</option>
+          </select>
+          <span style="font-size:16px;font-weight:800;color:var(--txd)">VS</span>
+          <select id="pf-pic-b" onchange="renderPicH2H()" style="background:var(--bg);border:1px solid var(--pk);border-radius:6px;padding:6px 12px;color:var(--pk);font-size:12px;font-weight:700;font-family:var(--f);outline:none;min-width:140px">
+            <option value="">— Pilih PIC —</option>
+          </select>
+          <span style="font-size:11px;color:var(--txm)">murni per <strong style="color:var(--tx)">PIC Omset</strong>, tanpa filter Ket Penggarap</span>
+        </div>
+
+        <!-- Cards perbandingan -->
+        <div id="pf-cards" style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;margin-bottom:16px;align-items:stretch"></div>
+
+        <!-- Tabel perbandingan per Sumber PT -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+          <div class="ptable-wrap">
+            <div class="ptable-head"><h3 id="pf-title-a">—</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('pf-table-a','Performa A')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('pf-table-a','Performa A')">📊 Excel</button></div></div>
+            <div class="ptable-scroll"><table class="ptable" id="pf-table-a"></table></div>
+          </div>
+          <div class="ptable-wrap">
+            <div class="ptable-head"><h3 id="pf-title-b">—</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('pf-table-b','Performa B')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('pf-table-b','Performa B')">📊 Excel</button></div></div>
+            <div class="ptable-scroll"><table class="ptable" id="pf-table-b"></table></div>
+          </div>
+        </div>
+
+        <!-- Ringkasan semua penggarap -->
+        <div class="ptable-wrap" style="margin-bottom:16px">
+          <div class="ptable-head"><h3>📊 Ringkasan Semua Penggarap</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('pf-all','Ringkasan Semua Penggarap')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('pf-all','Ringkasan Semua Penggarap')">📊 Excel</button></div></div>
+          <div class="ptable-scroll"><table class="ptable" id="pf-all"></table></div>
+        </div>
+
+        <!-- ── HEAD-TO-HEAD PIC OMSET ── -->
+        <div style="border-top:2px solid var(--bd);padding-top:16px;margin-top:4px">
+          <div style="font-size:11px;font-weight:700;color:var(--gn);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+            <span style="display:block;width:3px;height:14px;background:var(--gn);border-radius:2px"></span>
+            Head-to-Head PIC Omset
+          </div>
+
+          <!-- Cards H2H PIC -->
+          <div id="pic-h2h-cards" style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;margin-bottom:14px;align-items:stretch"></div>
+
+          <!-- Tabel breakdown per Sumber PT -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+            <div class="ptable-wrap">
+              <div class="ptable-head"><h3 id="pic-h2h-title-a">—</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('pic-h2h-table-a','PIC H2H A')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('pic-h2h-table-a','PIC H2H A')">📊 Excel</button></div></div>
+              <div class="ptable-scroll"><table class="ptable" id="pic-h2h-table-a"></table></div>
+            </div>
+            <div class="ptable-wrap">
+              <div class="ptable-head"><h3 id="pic-h2h-title-b">—</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('pic-h2h-table-b','PIC H2H B')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('pic-h2h-table-b','PIC H2H B')">📊 Excel</button></div></div>
+              <div class="ptable-scroll"><table class="ptable" id="pic-h2h-table-b"></table></div>
+            </div>
+          </div>
+
+          <!-- Tabel detail H2H per Ket Penggarap -->
+          <div class="ptable-wrap">
+            <div class="ptable-head"><h3>⚔️ Head-to-Head per Ket Penggarap</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('pic-h2h-detail','H2H Ket Penggarap')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('pic-h2h-detail','H2H Ket Penggarap')">📊 Excel</button></div></div>
+            <div class="ptable-scroll"><table class="ptable" id="pic-h2h-detail"></table></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ TAB: RINGKASAN ══ -->
+      <div id="tab-ringkasan">
+        <div class="pivot-grid">
+          <div class="ptable-wrap">
+            <div class="ptable-head"><h3>📊 Data Transaksi per Sumber PT</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('t-pt','Transaksi per Sumber PT')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('t-pt','Transaksi per Sumber PT')">📊 Excel</button></div></div>
+            <div class="ptable-scroll"><table class="ptable" id="t-pt"></table></div>
+          </div>
+          <div class="ptable-wrap">
+            <div class="ptable-head"><h3>💰 Sumber Dana × Sumber PT</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('t-sumber','Sumber Dana x PT')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('t-sumber','Sumber Dana x PT')">📊 Excel</button></div></div>
+            <div class="ptable-scroll"><table class="ptable" id="t-sumber"></table></div>
+          </div>
+          <div class="ptable-wrap">
+            <div class="ptable-head"><h3>📈 Omzet × Sumber PT</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('t-omzet','Omzet x PT')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('t-omzet','Omzet x PT')">📊 Excel</button></div></div>
+            <div class="ptable-scroll"><table class="ptable" id="t-omzet"></table></div>
+          </div>
+          <div class="ptable-wrap">
+            <div class="ptable-head"><h3>🗓️ Per Quarter × Sumber PT</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('t-quarter','Per Quarter x PT')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('t-quarter','Per Quarter x PT')">📊 Excel</button></div></div>
+            <div class="ptable-scroll"><table class="ptable" id="t-quarter"></table></div>
+          </div>
+        </div>
+
+        <!-- 5 Tabel PIC Omset -->
+        <div style="margin-top:4px;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="ptable-wrap">
+            <div class="ptable-head"><h3>🟢 SR — Total Kontrak × Sumber PT</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('t-pic-sr','SR x Sumber PT')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('t-pic-sr','SR x Sumber PT')">📊 Excel</button></div></div>
+            <div class="ptable-scroll"><table class="ptable" id="t-pic-sr"></table></div>
+          </div>
+          <div class="ptable-wrap">
+            <div class="ptable-head"><h3>🔵 REKANAN — Total Kontrak × Sumber PT</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('t-pic-rekanan','REKANAN x Sumber PT')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('t-pic-rekanan','REKANAN x Sumber PT')">📊 Excel</button></div></div>
+            <div class="ptable-scroll"><table class="ptable" id="t-pic-rekanan"></table></div>
+          </div>
+          <div class="ptable-wrap">
+            <div class="ptable-head"><h3>🟠 BM — Total Kontrak × Sumber PT</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('t-pic-bm','BM x Sumber PT')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('t-pic-bm','BM x Sumber PT')">📊 Excel</button></div></div>
+            <div class="ptable-scroll"><table class="ptable" id="t-pic-bm"></table></div>
+          </div>
+          <div class="ptable-wrap">
+            <div class="ptable-head"><h3>🟣 MP — Total Kontrak × Sumber PT</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('t-pic-mp','MP x Sumber PT')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('t-pic-mp','MP x Sumber PT')">📊 Excel</button></div></div>
+            <div class="ptable-scroll"><table class="ptable" id="t-pic-mp"></table></div>
+          </div>
+          <div class="ptable-wrap" style="grid-column:1/-1">
+            <div class="ptable-head"><h3>⚪ PUSAT — Total Kontrak × Sumber PT</h3><div class="exp-btns"><button class="exp-btn img" onclick="expImg('t-pic-pusat','PUSAT x Sumber PT')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXls('t-pic-pusat','PUSAT x Sumber PT')">📊 Excel</button></div></div>
+            <div class="ptable-scroll"><table class="ptable" id="t-pic-pusat"></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TAB: REKAPITULASI ══ -->
+      <div id="tab-rekap" style="display:none">
+        <div class="fbar">
+          <label>Filter:</label>
+          <select id="rk-fpt" onchange="applyRekap()"><option value="">Semua Sumber PT</option></select>
+          <select id="rk-fsd" onchange="applyRekap()"><option value="">Semua Sumber Dana</option></select>
+          <select id="rk-fpgp" onchange="applyRekap()"><option value="">Semua Penggarap</option></select>
+          <input type="text" id="rk-srch" placeholder="🔍 Cari No.PO, Satker, Produk..." oninput="applyRekap()"/>
+          <button class="bi" onclick="resetRekap()">✕ Reset</button>
+          <span class="fcnt" id="rk-cnt">— entri</span>
+        </div>
+        <div class="twrap">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--bd2)">
+            <span style="font-size:10px;color:var(--txm);font-family:var(--m)" id="rk-cnt2"></span>
+            <div class="exp-btns"><button class="exp-btn img" onclick="expImgWrap('rk-body','Rekapitulasi Pesanan')">🖼 Gambar</button><button class="exp-btn xls" onclick="expXlsWrap('rk-body','Rekapitulasi Pesanan','rk-head')">📊 Excel</button></div>
+          </div>
+          <table class="gtable" style="min-width:1400px">
+            <thead>
+              <tr id="rk-head"></tr>
+            </thead>
+            <tbody id="rk-body"></tbody>
+          </table>
+          <div class="pagi">
+            <div class="pinfo" id="rk-info">—</div>
+            <div class="pbtns" id="rk-btns"></div>
+            <select class="rsel" id="rk-rsel" onchange="chgRkPS()">
+              <option value="25">25 baris</option>
+              <option value="50">50 baris</option>
+              <option value="100">100 baris</option>
+              <option value="9999">Semua</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TAB: DETAIL ══ -->
+      <div id="tab-detail" style="display:none">
+        <div class="fbar">
+          <label>Filter:</label>
+          <select id="fpt" onchange="applyF()"><option value="">Semua Sumber PT</option></select>
+          <select id="fk"  onchange="applyF()"><option value="">Semua Kab/Kota</option></select>
+          <select id="fc"  onchange="applyF()"><option value="">Semua CV Pelaksana</option></select>
+          <select id="fsd" onchange="applyF()"><option value="">Semua Sumber Dana</option></select>
+          <input type="text" id="fsrch" placeholder="🔍 Cari No.PO, Nota, Produk..." oninput="applyF()"/>
+          <button class="bi" onclick="resetF()">✕ Reset</button>
+          <span class="fcnt" id="fcnt">— entri</span>
+        </div>
+        <div class="twrap dt-wrap">
+          <div style="display:flex;align-items:center;justify-content:flex-end;padding:8px 12px;border-bottom:1px solid var(--bd2)">
+            <div class="exp-btns"><button class="exp-btn xls" onclick="expXlsFull()">📊 Export Excel (semua data)</button></div>
+          </div>
+          <table>
+            <thead>
+              <tr class="grow">
+                <th class="gh1" colspan="26">DATA</th>
+                <th class="gh2" colspan="6">HPP</th>
+                <th class="gh3" colspan="4">RAB / TAYANG</th>
+                <th class="gh4" colspan="5">KONTRAK</th>
+                <th class="gh5" colspan="22">PERHITUNGAN</th>
+                <th class="gh6" colspan="6">PROGRESS</th>
+              </tr>
+              <tr class="colrow" id="colrow"></tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+          <div class="pagi">
+            <div class="pinfo" id="pinfo">—</div>
+            <div class="pbtns" id="pbtns"></div>
+            <select class="rsel" id="rsel" onchange="chgPS()">
+              <option value="25">25 baris</option>
+              <option value="50">50 baris</option>
+              <option value="100">100 baris</option>
+              <option value="9999">Semua</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /dash -->
+  </main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// KONFIGURASI
+// ═══════════════════════════════════════════
+const CFG = {
+  clientId   : "7c9e72bd-7c81-4e68-b8be-4bdbc93a6fb9",
+  authority  : "https://login.microsoftonline.com/consumers",
+  redirectUri: "http://localhost:8080/pantauan-dashboard.html",
+  filePath   : "/#DATABASEBASE/##PANTAUAN PESANAN PROJECT 2026/X/Rekapitulasi Pesanan Proyek 2026.xlsx",
+  headerRow  : 1,
+  sheetName  : "Pesanan_Gabungan",
+};
+
+// ═══════════════════════════════════════════
+// DEFINISI KOLOM DETAIL
+// Kolom B (No, idx 1) dan BT (Kolban, idx 71) TIDAK ditampilkan
+// ═══════════════════════════════════════════
+const COLS = [
+  // DATA (A,C–AB = tanpa B)
+  {k:"sumber",    lb:"Sumber PT",           i:0,  tc:true},
+  // idx 1 = No — dilewati (tidak ditampilkan)
+  {k:"kabKota",   lb:"Kab/Kota",            i:2,  tc:true},
+  {k:"noPo",      lb:"No. SP/No. PO",       i:3},
+  {k:"satker",    lb:"Satker",              i:4,  tc:true},
+  {k:"rup",       lb:"RUP",                 i:5},
+  {k:"namaPgd",   lb:"Nama Pengadaan",      i:6,  tc:true},
+  {k:"tglSp",     lb:"Tgl SP/PO",           i:7},
+  {k:"tglSelesai",lb:"Tgl Selesai Kontrak", i:8},
+  {k:"notaOld",   lb:"Nota Oldist",         i:9},
+  {k:"tglNota",   lb:"Tgl Nota",            i:10},
+  {k:"notaErp",   lb:"Nota ERP",            i:11},
+  {k:"tglErp",    lb:"Tgl ERP",             i:12},
+  {k:"sumberDana",lb:"Sumber Dana",         i:13},
+  {k:"ppn",       lb:"PPN/Non PPN",         i:14},
+  {k:"penggarap", lb:"Penggarap",           i:15, tc:true},
+  {k:"ketPgp",    lb:"Ket Penggarap",       i:16},
+  {k:"picOmset",  lb:"PIC Omset",           i:17, tc:true},
+  {k:"ketOmset",  lb:"Ket Omset",           i:18},
+  {k:"cvPelaksana",lb:"CV Pelaksana",       i:19, tc:true},
+  {k:"cvLayer",   lb:"CV Layer",            i:20},
+  {k:"pt",        lb:"PT",                  i:21},
+  {k:"principal", lb:"Principal",           i:22},
+  {k:"principal2",lb:"Principal2",          i:23},
+  {k:"kategori",  lb:"Kategori Produk",     i:24},
+  {k:"kodeProd",  lb:"Kode Produk",         i:25},
+  {k:"namaProd",  lb:"Nama Produk",         i:26, tc:true, ge:true},
+  // HPP
+  {k:"hppPemasok",    lb:"HPP Pemasok",         i:28, mn:true},
+  {k:"hppLayer",      lb:"HPP Layer",            i:29, mn:true},
+  {k:"hppPelaksana",  lb:"HPP Pelaksana",        i:30, mn:true},
+  {k:"totHppPemasok", lb:"Total HPP Pemasok",    i:31, mn:true},
+  {k:"totHppLayer",   lb:"Total HPP Layer",      i:32, mn:true},
+  {k:"totHppPelaksana",lb:"Total HPP Pelaksana", i:33, mn:true, ge:true},
+  // RAB
+  {k:"hargaRab",    lb:"Harga Tayang/RAB",   i:34, mn:true},
+  {k:"totRab",      lb:"Total Harga RAB",    i:35, mn:true},
+  {k:"totOngkirRab",lb:"Total Ongkir RAB",   i:36, mn:true},
+  {k:"totRabOngkir",lb:"Total RAB+Ongkir",   i:37, mn:true, ge:true},
+  // KONTRAK
+  {k:"hargaKontrak",    lb:"Harga Kontrak",         i:38, mn:true},
+  {k:"totKontrak",      lb:"Total Harga Kontrak",   i:39, mn:true},
+  {k:"totOngkirKont",   lb:"Total Ongkir Kontrak",  i:40, mn:true},
+  {k:"totNego",         lb:"Total Negosiasi",        i:41, mn:true},
+  {k:"totKontrakOngkir",lb:"Total Kontrak+Ongkir",  i:42, mn:true, ge:true},
+  // PERHITUNGAN
+  {k:"perhitungan",lb:"Perhitungan",      i:43, mn:true},
+  {k:"potNego",    lb:"Pot. Negosiasi",   i:44, mn:true},
+  {k:"dpp",        lb:"DPP",              i:45, mn:true},
+  {k:"ppnVal",     lb:"PPN",              i:46, mn:true},
+  {k:"pph",        lb:"PPH",              i:47, mn:true},
+  {k:"dpr",        lb:"DPR (Rp)",         i:48, mn:true},
+  {k:"pctFm",      lb:"%FM",              i:49},
+  {k:"pctBsr",     lb:"%BSR",             i:50},
+  {k:"pctBop",     lb:"%BOP",             i:51},
+  {k:"pctDisc",    lb:"%Disc",            i:52},
+  {k:"pctJmlR",    lb:"%Jml R",           i:53},
+  {k:"pctFm1",     lb:"%FM1",             i:54},
+  {k:"nilaiFm1",   lb:"Nilai FM1",        i:55, mn:true},
+  {k:"pctFm2",     lb:"%FM2",             i:56},
+  {k:"nilaiFm2",   lb:"Nilai FM2",        i:57, mn:true},
+  {k:"pctBsr2",    lb:"%BSR2",            i:58},
+  {k:"nilaiBsr",   lb:"Nilai BSR",        i:59, mn:true},
+  {k:"pctBop2",    lb:"%BOP2",            i:60},
+  {k:"nilaiBop",   lb:"Nilai BOP",        i:61, mn:true},
+  {k:"totFm",      lb:"Total FM",         i:62, mn:true},
+  {k:"totRabat",   lb:"Total Rabat",      i:63, mn:true},
+  {k:"netto",      lb:"Netto",            i:64, mn:true, ge:true},
+  // PROGRESS (BN–BS, tanpa BT)
+  {k:"tglJl",      lb:"Tgl JL",           i:65},
+  {k:"noJl",       lb:"No JL",            i:66},
+  {k:"tglJk",      lb:"Tgl JK",           i:67},
+  {k:"noJk",       lb:"No JK",            i:68},
+  {k:"progressErp",lb:"Progress ERP",     i:69},
+  {k:"keterangan", lb:"Keterangan",       i:70, tc:true},
+  // idx 71 = Kolban — dilewati (tidak ditampilkan)
+];
+
+// Kolom untuk tab Rekapitulasi
+const REKAP_COLS = [
+  {k:"sumber",           lb:"Sumber PT",                   tc:true},
+  {k:"kabKota",          lb:"Kab/Kota",                    tc:true},
+  {k:"noPo",             lb:"No. SP/No. PO",               },
+  {k:"satker",           lb:"Satker",                      tc:true},
+  {k:"rup",              lb:"RUP",                         },
+  {k:"namaPgd",          lb:"Nama Pengadaan",              tc:true},
+  {k:"tglSp",            lb:"Tgl SP/PO",                   },
+  {k:"sumberDana",       lb:"Sumber Dana",                 },
+  {k:"penggarap",        lb:"Penggarap",                   tc:true},
+  {k:"ketPgp",           lb:"Ket Penggarap",               },
+  {k:"picOmset",         lb:"PIC Omset",                   tc:true},
+  {k:"ketOmset",         lb:"Ket Omset",                   },
+  {k:"cvPelaksana",      lb:"CV Pelaksana",                tc:true},
+  {k:"totKontrakOngkir", lb:"Total Kontrak Barang + Ongkir", mn:true},
+];
+
+const BULAN=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const QM={Q1:[0,1,2],Q2:[3,4,5],Q3:[6,7,8],Q4:[9,10,11]};
+
+let msal_=null, allData=[], filtData=[], rekapData=[], filtRekapData=[];
+let curPage=1, pgSz=25, sortI=-1, sortAsc=true;
+let rkPage=1, rkPgSz=25, rkSortI=-1, rkSortAsc=true;
+
+// ═══════════════════════════════════════════
+// MSAL
+// ═══════════════════════════════════════════
+async function initMsal(){
+  await new Promise((res,rej)=>{
+    const s=document.createElement("script");
+    s.src="https://alcdn.msauth.net/browser/2.38.1/js/msal-browser.min.js";
+    s.onload=res;s.onerror=rej;document.head.appendChild(s);
+  });
+  msal_=new msal.PublicClientApplication({
+    auth:{clientId:CFG.clientId,authority:CFG.authority,redirectUri:CFG.redirectUri},
+    cache:{cacheLocation:"sessionStorage"}
+  });
+  await msal_.initialize();
+  try{
+    const r=await msal_.handleRedirectPromise();
+    if(r){showApp(r.account);loadData();}
+    else{const ac=msal_.getAllAccounts();if(ac.length){showApp(ac[0]);loadData();}}
+  }catch(e){console.error(e);}
+}
+
+async function doLogin(){
+  if(!msal_){alert("Refresh halaman.");return;}
+  if(CFG.clientId==="YOUR_CLIENT_ID_DARI_AZURE"){
+    alert("⚠️ Client ID belum diisi!\n\nBuka file HTML dengan Notepad, cari:\nclientId: \"YOUR_CLIENT_ID_DARI_AZURE\"\nGanti dengan Client ID dari Azure.");
+    return;
+  }
+  await msal_.loginRedirect({scopes:["User.Read","Files.Read.All"]});
+}
+async function doLogout(){await msal_.logoutRedirect();}
+
+function showApp(acc){
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").classList.add("on");
+  const n=acc.name||acc.username;
+  document.getElementById("uname").textContent=n;
+  document.getElementById("uid").textContent=n.charAt(0).toUpperCase();
+}
+function showSts(type,msg){
+  const el=document.getElementById("sbar");
+  el.style.display="block";document.getElementById("dash").style.display="none";
+  el.innerHTML=type==="loading"
+    ?`<div class="spin"></div><div>${msg}</div>`
+    :`<div class="errm">❌ ${msg}<br><br><a onclick="openCfg()">Cek konfigurasi</a> | <a onclick="reload()">Coba lagi</a></div>`;
+}
+function showDash(){document.getElementById("sbar").style.display="none";document.getElementById("dash").style.display="block";}
+function openCfg(){
+  document.getElementById("cfgp").value=CFG.filePath;
+  document.getElementById("cfgh").value=CFG.headerRow;
+  document.getElementById("cfgs").value=CFG.sheetName;
+  document.getElementById("cfgm").classList.add("open");
+}
+function closeCfg(){document.getElementById("cfgm").classList.remove("open");}
+function saveCfg(){
+  CFG.filePath=document.getElementById("cfgp").value.trim();
+  CFG.headerRow=parseInt(document.getElementById("cfgh").value)||1;
+  CFG.sheetName=document.getElementById("cfgs").value.trim();
+  closeCfg();loadData();
+}
+function switchTab(t){
+  const tabs=["ringkasan","performa","rekap","detail"];
+  document.querySelectorAll(".tab").forEach((el,i)=>el.classList.toggle("active",tabs[i]===t));
+  tabs.forEach(id=>document.getElementById("tab-"+id).style.display=id===t?"block":"none");
+  if(t==="performa"&&allData.length)renderPerforma();
+}
+
+// ═══════════════════════════════════════════
+// LOAD DATA
+// ═══════════════════════════════════════════
+async function getToken(){
+  const ac=msal_.getAllAccounts();if(!ac.length)throw new Error("Tidak ada akun aktif");
+  const r=await msal_.acquireTokenSilent({scopes:["Files.Read.All"],account:ac[0]});
+  return r.accessToken;
+}
+async function loadData(){
+  showSts("loading","Mengambil file Excel dari OneDrive...");
+  try{
+    const token=await getToken();
+    const enc=CFG.filePath.replace(/#/g,"%23").replace(/ /g,"%20");
+    const resp=await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:${enc}:/content`,
+      {headers:{Authorization:`Bearer ${token}`}});
+    if(!resp.ok){
+      const e=await resp.json().catch(()=>({}));
+      throw new Error(`Graph API ${resp.status}: ${e?.error?.message||resp.statusText}`);
+    }
+    showSts("loading","Memproses Excel...");
+    const buf=await resp.arrayBuffer();
+    const wb=XLSX.read(buf,{type:"array",cellDates:true,raw:true});
+    const sn=CFG.sheetName||wb.SheetNames[0];
+    const ws=wb.Sheets[sn];
+    if(!ws)throw new Error(`Sheet "${sn}" tidak ditemukan. Tersedia: ${wb.SheetNames.join(", ")}`);
+    const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:true});
+    parse(raw);
+  }catch(e){console.error(e);showSts("error",e.message);}
+}
+function reload(){loadData();}
+
+// ═══════════════════════════════════════════
+// PARSE
+// ═══════════════════════════════════════════
+function xlDateToStr(v){
+  // Konversi Excel serial date ke string DD/MM/YYYY
+  if(v instanceof Date){
+    const d=v.getDate(),m=v.getMonth()+1,y=v.getFullYear();
+    return`${String(d).padStart(2,"0")}/${String(m).padStart(2,"0")}/${y}`;
+  }
+  if(typeof v==="number"&&v>1000&&v<200000){
+    const d=new Date(Math.round((v-25569)*86400*1000));
+    const dd=d.getUTCDate(),mm=d.getUTCMonth()+1,yy=d.getUTCFullYear();
+    return`${String(dd).padStart(2,"0")}/${String(mm).padStart(2,"0")}/${yy}`;
+  }
+  return String(v??"");
+}
+
+function getBulanFromVal(v){
+  // Dari nilai raw (bisa serial, Date, string)
+  if(v instanceof Date) return v.getMonth();
+  if(typeof v==="number"&&v>1000&&v<200000){
+    const d=new Date(Math.round((v-25569)*86400*1000));
+    return d.getUTCMonth();
+  }
+  const s=String(v??"").trim();
+  if(!s)return -1;
+  // DD/MM/YYYY
+  const dm=s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
+  if(dm){
+    const day=parseInt(dm[1]),mon=parseInt(dm[2]);
+    if(day>12)return mon-1;
+    if(mon>12)return day-1;
+    return mon-1;
+  }
+  // YYYY-MM-DD
+  const ym=s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if(ym){const m=parseInt(ym[2])-1;if(m>=0&&m<=11)return m;}
+  return -1;
+}
+
+const DATE_COLS=[7,8,10,12,65,67]; // idx kolom yang berisi tanggal
+
+function parse(raw){
+  const hi=CFG.headerRow-1;
+  const rows=raw.slice(hi+1).filter(r=>r.some(c=>c!==""));
+  allData=rows.map(row=>{
+    const obj={};
+    // Semua kolom dari COLS
+    COLS.forEach(c=>{
+      const v=row[c.i]??"";
+      obj[c.k]=DATE_COLS.includes(c.i)?xlDateToStr(v):String(v);
+    });
+    // Kolom tambahan yang tidak ada di COLS tapi perlu untuk rekap/pivot
+    obj.no    = String(row[1]??"");  // B = No
+    obj.tglSpRaw = row[7]??0;        // raw untuk sorting & quarter
+    return obj;
+  });
+
+  // SORT berdasarkan Tgl SP/PO ascending
+  allData.sort((a,b)=>{
+    const va=a.tglSpRaw, vb=b.tglSpRaw;
+    // Jika keduanya number (serial Excel)
+    if(typeof va==="number"&&typeof vb==="number")return va-vb;
+    // Fallback: parse dari string
+    return parseDateMs(a.tglSp)-parseDateMs(b.tglSp);
+  });
+
+  buildColHeaders();
+  fillFilters();
+  fillPfPicOpts();
+  applyF();
+  buildRekap();
+  renderSummary();
+  renderPivots();
+  showDash();
+}
+
+function parseDateMs(s){
+  if(!s||s==="")return 0;
+  const dm=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  if(dm)return new Date(parseInt(dm[3]),parseInt(dm[2])-1,parseInt(dm[1])).getTime();
+  const ym=s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if(ym)return new Date(parseInt(ym[1]),parseInt(ym[2])-1,parseInt(ym[3])).getTime();
+  return 0;
+}
+
+// ═══════════════════════════════════════════
+// REKAPITULASI — Group by No. SP/No. PO
+// ═══════════════════════════════════════════
+function buildRekap(){
+  const map=new Map;
+  allData.forEach(d=>{
+    const key=d.noPo||"(kosong)";
+    if(!map.has(key)){
+      map.set(key,{
+        sumber:d.sumber, kabKota:d.kabKota, noPo:d.noPo,
+        satker:d.satker, rup:d.rup, namaPgd:d.namaPgd,
+        tglSp:d.tglSp, tglSpRaw:d.tglSpRaw,
+        sumberDana:d.sumberDana, penggarap:d.penggarap, ketPgp:d.ketPgp,
+        picOmset:d.picOmset, ketOmset:d.ketOmset, cvPelaksana:d.cvPelaksana,
+        totKontrakOngkir:0,
+      });
+    }
+    map.get(key).totKontrakOngkir+=toNum(d.totKontrakOngkir);
+  });
+  // Sort berdasarkan Tgl SP/PO ascending
+  rekapData=[...map.values()].sort((a,b)=>{
+    if(typeof a.tglSpRaw==="number"&&typeof b.tglSpRaw==="number") return a.tglSpRaw-b.tglSpRaw;
+    return parseDateMs(a.tglSp)-parseDateMs(b.tglSp);
+  });
+  fillRekapFilters();
+  applyRekap();
+}
+
+function fillRekapFilters(){
+  const spt=new Set,ssd=new Set,spgp=new Set;
+  rekapData.forEach(d=>{
+    if(d.sumber)spt.add(d.sumber);
+    if(d.sumberDana)ssd.add(d.sumberDana);
+    if(d.penggarap)spgp.add(d.penggarap);
+  });
+  fSel("rk-fpt",[...spt].sort(),"Semua Sumber PT");
+  fSel("rk-fsd",[...ssd].sort(),"Semua Sumber Dana");
+  fSel("rk-fpgp",[...spgp].sort(),"Semua Penggarap");
+}
+
+function applyRekap(){
+  const pt=document.getElementById("rk-fpt").value;
+  const sd=document.getElementById("rk-fsd").value;
+  const pgp=document.getElementById("rk-fpgp").value;
+  const srch=document.getElementById("rk-srch").value.toLowerCase();
+  filtRekapData=rekapData.filter(d=>{
+    if(pt&&d.sumber!==pt)return false;
+    if(sd&&d.sumberDana!==sd)return false;
+    if(pgp&&d.penggarap!==pgp)return false;
+    if(srch){
+      const h=[d.noPo,d.satker,d.namaPgd,d.cvPelaksana].join(" ").toLowerCase();
+      if(!h.includes(srch))return false;
+    }
+    return true;
+  });
+  document.getElementById("rk-cnt").textContent=`${filtRekapData.length} entri`;
+  rkPage=1;renderRekap();
+}
+
+function resetRekap(){
+  ["rk-fpt","rk-fsd","rk-fpgp"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("rk-srch").value="";
+  applyRekap();
+}
+
+function sortRekap(ci){
+  if(rkSortI===ci)rkSortAsc=!rkSortAsc;else{rkSortI=ci;rkSortAsc=true;}
+  buildRkHead();
+  const key=REKAP_COLS[ci].k;
+  filtRekapData.sort((a,b)=>{
+    const va=a[key]??"",vb=b[key]??"";
+    const nm=v=>!isNaN(parseFloat(String(v).replace(/[^0-9.-]/g,"")))&&v!=="";
+    if(nm(va)&&nm(vb))return rkSortAsc?toNum(va)-toNum(vb):toNum(vb)-toNum(va);
+    return rkSortAsc?String(va).localeCompare(String(vb),"id"):String(vb).localeCompare(String(va),"id");
+  });
+  renderRekap();
+}
+
+function buildRkHead(){
+  const tr=document.getElementById("rk-head");tr.innerHTML="";
+  REKAP_COLS.forEach((c,i)=>{
+    const th=document.createElement("th");
+    th.textContent=c.lb+(rkSortI===i?(rkSortAsc?" ▲":" ▼"):"");
+    if(c.mn)th.classList.add("mr");
+    if(rkSortI===i)th.classList.add("sorted");
+    th.style.cssText="background:var(--sf2);padding:6px 10px;font-size:9px;font-weight:700;color:"+(rkSortI===i?"var(--blb)":"var(--txm)")+";text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--bd);white-space:nowrap;cursor:pointer;"+(c.mn?"text-align:right":"text-align:left");
+    th.onclick=()=>sortRekap(i);
+    tr.appendChild(th);
+  });
+}
+
+function renderRekap(){
+  buildRkHead();
+  const st=(rkPage-1)*rkPgSz,en=Math.min(st+rkPgSz,filtRekapData.length);
+  const pg=filtRekapData.slice(st,en);
+  const tb=document.getElementById("rk-body");
+  if(!pg.length){
+    tb.innerHTML=`<tr class="erow"><td colspan="${REKAP_COLS.length}" style="text-align:center;padding:28px;color:var(--txd);font-family:var(--f)">Tidak ada data</td></tr>`;
+    return;
+  }
+  tb.innerHTML=pg.map(d=>`<tr>${REKAP_COLS.map(c=>{
+    const v=d[c.k]??"";
+    const val=c.mn?fmtMoney(toNum(v)):esc(String(v));
+    const cls=(c.mn?"mr ":"")+(c.tc?"tc ":"");
+    return`<td class="${cls.trim()}" style="padding:6px 10px;border-right:1px solid var(--bd2)">${val||'<span style="color:var(--txd)">—</span>'}</td>`;
+  }).join("")}</tr>`).join("");
+  // Total row
+  const totKontrak=filtRekapData.reduce((s,d)=>s+toNum(d.totKontrakOngkir),0);
+  tb.innerHTML+=`<tr style="background:var(--sf2);border-top:2px solid var(--bd)">
+    ${REKAP_COLS.slice(0,-1).map(()=>`<td style="padding:6px 10px;border-right:1px solid var(--bd2)"></td>`).join("")}
+    <td style="padding:6px 10px;text-align:right;font-weight:700;color:var(--or);font-family:var(--m)">${fmtMoney(totKontrak)}</td>
+  </tr>`;
+  renderRkPagi(st,en);
+}
+
+function renderRkPagi(st,en){
+  document.getElementById("rk-info").textContent=`Menampilkan ${Math.min(st+1,filtRekapData.length)}–${en} dari ${filtRekapData.length} entri`;
+  const tot=Math.ceil(filtRekapData.length/rkPgSz),el=document.getElementById("rk-btns");el.innerHTML="";
+  const add=(lb,pg,dis,act)=>{const b=document.createElement("button");b.className="pbtn"+(act?" active":"");b.textContent=lb;b.disabled=dis;b.onclick=()=>{rkPage=pg;renderRekap();};el.appendChild(b);};
+  add("‹",rkPage-1,rkPage===1);
+  for(let p=Math.max(1,rkPage-2);p<=Math.min(tot,rkPage+2);p++)add(p,p,false,p===rkPage);
+  add("›",rkPage+1,rkPage===tot||tot===0);
+}
+function chgRkPS(){rkPgSz=parseInt(document.getElementById("rk-rsel").value);rkPage=1;renderRekap();}
+
+// ═══════════════════════════════════════════
+// PIVOT HELPERS
+// ═══════════════════════════════════════════
+function toNum(v){const n=parseFloat(String(v??"").replace(/[^0-9.-]/g,""));return isNaN(n)?0:n;}
+function fmtRp(n){
+  if(n===0)return`<span class="vzero">-</span>`;
+  if(Math.abs(n)>=1e9)return`<span class="vpos">${(n/1e9).toFixed(2)}M</span>`;
+  if(Math.abs(n)>=1e6)return`<span class="vpos">${(n/1e6).toFixed(1)}jt</span>`;
+  return`<span class="vpos">${n.toLocaleString("id-ID")}</span>`;
+}
+function fmtTot(n){
+  if(n===0)return`<span class="vzero">-</span>`;
+  if(Math.abs(n)>=1e9)return`<span class="vtot">${(n/1e9).toFixed(2)}M</span>`;
+  if(Math.abs(n)>=1e6)return`<span class="vtot">${(n/1e6).toFixed(1)}jt</span>`;
+  return`<span class="vtot">${n.toLocaleString("id-ID")}</span>`;
+}
+function fmtMoney(n){
+  if(n===0)return`<span style="color:var(--txd)">—</span>`;
+  if(Math.abs(n)>=1e9)return`<span style="color:var(--or)">Rp ${(n/1e9).toFixed(2)}M</span>`;
+  if(Math.abs(n)>=1e6)return`<span style="color:var(--or)">Rp ${(n/1e6).toFixed(1)}jt</span>`;
+  return`<span style="color:var(--or)">Rp ${n.toLocaleString("id-ID")}</span>`;
+}
+function pivotData(data,rowKey,colKey,valKey){
+  const rs=new Set,cs=new Set;
+  data.forEach(d=>{if(d[rowKey])rs.add(d[rowKey]);if(d[colKey])cs.add(d[colKey]);});
+  const rows=[...rs].sort(),cols=[...cs].sort();
+  const cells={},rTot={},cTot={};let grand=0;
+  rows.forEach(r=>{cells[r]={};rTot[r]=0;});cols.forEach(c=>{cTot[c]=0;});
+  data.forEach(d=>{
+    const r=d[rowKey],c=d[colKey];if(!r||!c)return;
+    const v=toNum(d[valKey]);
+    cells[r][c]=(cells[r][c]||0)+v;rTot[r]=(rTot[r]||0)+v;
+    cTot[c]=(cTot[c]||0)+v;grand+=v;
+  });
+  return{rows,cols,cells,rTot,cTot,grand};
+}
+
+// ═══════════════════════════════════════════
+// RENDER PIVOTS
+// ═══════════════════════════════════════════
+function renderPivots(){renderPT();renderSumberDana();renderOmzet();renderQuarter();renderPicOmzetPivots();}
+
+// Render 5 tabel pivot berdasarkan filter Ket Penggarap
+// Baris = PIC Omset, Kolom = Sumber PT
+function renderPicOmzetPivots(){
+  const picList=[
+    {val:"SR",      id:"t-pic-sr",      icon:"🟢"},
+    {val:"REKANAN", id:"t-pic-rekanan", icon:"🔵"},
+    {val:"BM",      id:"t-pic-bm",      icon:"🟠"},
+    {val:"MP",      id:"t-pic-mp",      icon:"🟣"},
+    {val:"PUSAT",   id:"t-pic-pusat",   icon:"⚪"},
+  ];
+  // Ambil semua Sumber PT yang ada di data (konsisten di semua tabel)
+  const allPts=[...new Set(allData.map(d=>d.sumber).filter(Boolean))].sort();
+
+  picList.forEach(({val,id})=>{
+    // Filter berdasarkan Ket Penggarap (ketPgp)
+    const filtered=allData.filter(d=>
+      String(d.ketPgp||"").trim().toUpperCase()===val.toUpperCase()
+    );
+
+    if(!filtered.length){
+      document.getElementById(id).innerHTML=
+        `<tbody><tr><td colspan="${allPts.length+2}" style="padding:16px;text-align:center;color:var(--txd);font-family:var(--f);font-size:11px">Tidak ada data untuk Ket Penggarap: ${val}</td></tr></tbody>`;
+      return;
+    }
+
+    // Pivot: baris = picOmset, kolom = sumber PT
+    const p=pivotData(filtered,"picOmset","sumber","totKontrakOngkir");
+    // Pakai allPts agar kolom konsisten walau ada PT yang kosong di subset ini
+    const cols=allPts;
+    const{rows,cells,rTot,cTot,grand}=p;
+    // Recalculate cTot berdasarkan allPts
+    const cTotAll={};cols.forEach(c=>{cTotAll[c]=0;});
+    filtered.forEach(d=>{
+      const c=d.sumber;if(!c)return;
+      cTotAll[c]=(cTotAll[c]||0)+toNum(d.totKontrakOngkir);
+    });
+
+    let html=`<thead><tr>
+      <th style="text-align:left">PIC Omset</th>`;
+    cols.forEach(pt=>html+=`<th class="thdr">${esc(pt)}</th>`);
+    html+=`<th class="thdr" style="color:var(--or)">TOTAL</th>
+    </tr></thead><tbody>`;
+
+    rows.sort().forEach(r=>{
+      html+=`<tr><td style="font-family:var(--f);font-weight:500">${esc(r)}</td>`;
+      cols.forEach(pt=>html+=`<td>${fmtRp(cells[r]?.[pt]||0)}</td>`);
+      html+=`<td>${fmtRp(rTot[r]||0)}</td></tr>`;
+    });
+
+    // Baris TOTAL
+    html+=`<tr class="trow"><td>TOTAL</td>`;
+    cols.forEach(pt=>html+=`<td>${fmtTot(cTotAll[pt]||0)}</td>`);
+    html+=`<td>${fmtTot(grand)}</td></tr></tbody>`;
+
+    document.getElementById(id).innerHTML=html;
+  });
+}
+
+function renderPT(){
+  const map={};
+  allData.forEach(d=>{
+    const pt=d.sumber||"(kosong)";
+    if(!map[pt])map[pt]={pt,kontrak:0,rab:0,hpp:0,fm:0,netto:0,noPoSet:new Set()};
+    map[pt].kontrak+=toNum(d.totKontrakOngkir);map[pt].rab+=toNum(d.totRabOngkir);
+    map[pt].hpp+=toNum(d.totHppPelaksana);map[pt].fm+=toNum(d.totFm);
+    map[pt].netto+=toNum(d.netto);
+    if(d.noPo) map[pt].noPoSet.add(d.noPo);
+  });
+  const pts=Object.values(map).filter(p=>p.pt!=="(kosong)").sort((a,b)=>b.kontrak-a.kontrak);
+  let html=`<thead><tr>
+    <th style="text-align:left">Sumber PT</th>
+    <th class="thdr">Jml</th><th class="thdr">Total Kontrak</th>
+    <th class="thdr">Total RAB</th><th class="thdr">Total HPP</th>
+    <th class="thdr">Total FM</th><th class="thdr">Netto</th>
+  </tr></thead><tbody>`;
+  pts.forEach(p=>{html+=`<tr><td>${esc(p.pt)}</td><td>${p.noPoSet.size}</td>
+    <td>${fmtRp(p.kontrak)}</td><td>${fmtRp(p.rab)}</td>
+    <td>${fmtRp(p.hpp)}</td><td>${fmtRp(p.fm)}</td><td>${fmtRp(p.netto)}</td></tr>`;});
+  const T=k=>pts.reduce((s,p)=>s+p[k],0);
+  const totalNoPo=new Set(allData.map(d=>d.noPo).filter(Boolean)).size;
+  html+=`<tr class="trow"><td>TOTAL</td><td>${totalNoPo}</td>
+    <td>${fmtTot(T("kontrak"))}</td><td>${fmtTot(T("rab"))}</td>
+    <td>${fmtTot(T("hpp"))}</td><td>${fmtTot(T("fm"))}</td><td>${fmtTot(T("netto"))}</td>
+  </tr></tbody>`;
+  document.getElementById("t-pt").innerHTML=html;
+}
+
+function renderSumberDana(){
+  const p=pivotData(allData,"sumberDana","sumber","totKontrakOngkir");
+  renderCross("t-sumber",p,"Sumber Dana");
+}
+function renderOmzet(){
+  const p=pivotData(allData,"ketOmset","sumber","totKontrakOngkir");
+  renderCross("t-omzet",p,"Omzet");
+}
+function renderCross(id,p,rowLabel){
+  const{rows,cols,cells,rTot,cTot,grand}=p;
+  let html=`<thead><tr><th style="text-align:left">${rowLabel}</th>`;
+  cols.forEach(c=>html+=`<th class="thdr">${esc(c)}</th>`);
+  html+=`<th class="thdr" style="color:var(--or)">TOTAL</th></tr></thead><tbody>`;
+  rows.forEach(r=>{
+    html+=`<tr><td>${esc(r)}</td>`;
+    cols.forEach(c=>html+=`<td>${fmtRp(cells[r][c]||0)}</td>`);
+    html+=`<td>${fmtRp(rTot[r]||0)}</td></tr>`;
+  });
+  html+=`<tr class="trow"><td>TOTAL</td>`;
+  cols.forEach(c=>html+=`<td>${fmtTot(cTot[c]||0)}</td>`);
+  html+=`<td>${fmtTot(grand)}</td></tr></tbody>`;
+  document.getElementById(id).innerHTML=html;
+}
+
+function renderQuarter(){
+  const pts=[...new Set(allData.map(d=>d.sumber).filter(Boolean))].sort();
+  const qd={Q1:{},Q2:{},Q3:{},Q4:{}};
+  Object.keys(QM).forEach(q=>QM[q].forEach(mi=>{qd[q][mi]={};}));
+  allData.forEach(d=>{
+    const mi=getBulanFromVal(d.tglSpRaw);
+    if(mi<0)return;
+    const pt=d.sumber;if(!pt)return;
+    const q=Object.keys(QM).find(q=>QM[q].includes(mi));if(!q)return;
+    qd[q][mi][pt]=(qd[q][mi][pt]||0)+toNum(d.totKontrakOngkir);
+  });
+  let html=`<thead><tr>
+    <th style="text-align:center;width:28px">Q</th>
+    <th style="text-align:left">Bulan</th>`;
+  pts.forEach(pt=>html+=`<th class="thdr">${esc(pt)}</th>`);
+  html+=`<th class="thdr" style="color:var(--or)">TOTAL</th></tr></thead><tbody>`;
+  const ptGrand={};let grand=0;pts.forEach(pt=>{ptGrand[pt]=0;});
+  Object.keys(QM).forEach(q=>{
+    const qTot={};pts.forEach(pt=>{qTot[pt]=0;});
+    QM[q].forEach((mi,idx)=>{
+      html+=`<tr>`;
+      if(idx===0)html+=`<td class="qgrp" rowspan="3">${q}</td>`;
+      html+=`<td>${BULAN[mi]}</td>`;
+      let rowTot=0;
+      pts.forEach(pt=>{
+        const v=qd[q][mi][pt]||0;
+        qTot[pt]+=v;ptGrand[pt]+=v;rowTot+=v;grand+=v;
+        html+=`<td>${fmtRp(v)}</td>`;
+      });
+      html+=`<td>${fmtRp(rowTot)}</td></tr>`;
+    });
+    html+=`<tr class="trow"><td></td><td style="color:var(--blb);font-size:10px">Sub ${q}</td>`;
+    pts.forEach(pt=>html+=`<td>${fmtTot(qTot[pt])}</td>`);
+    html+=`<td>${fmtTot(Object.values(qTot).reduce((a,b)=>a+b,0))}</td></tr>`;
+  });
+  html+=`<tr class="trow"><td></td><td>TOTAL</td>`;
+  pts.forEach(pt=>html+=`<td>${fmtTot(ptGrand[pt])}</td>`);
+  html+=`<td>${fmtTot(grand)}</td></tr></tbody>`;
+  document.getElementById("t-quarter").innerHTML=html;
+}
+
+// ═══════════════════════════════════════════
+// SUMMARY CARDS
+// ═══════════════════════════════════════════
+function sumK(k){return allData.reduce((a,d)=>a+toNum(d[k]),0);}
+function fmtCard(n){return n>=1e9?`Rp ${(n/1e9).toFixed(1)}M`:n>=1e6?`Rp ${(n/1e6).toFixed(0)}jt`:`Rp ${n.toLocaleString("id-ID")}`;}
+function renderSummary(){
+  const tot=new Set(allData.map(d=>d.noPo).filter(Boolean)).size;
+  const tK=sumK("totKontrakOngkir"),tR=sumK("totRabOngkir"),tH=sumK("totHppPelaksana"),tF=sumK("totFm"),tN=sumK("netto");
+  document.getElementById("s0").textContent=tot.toLocaleString("id-ID");
+  document.getElementById("s1").textContent=tK>0?fmtCard(tK):"—";
+  document.getElementById("s2").textContent=tR>0?fmtCard(tR):"—";
+  document.getElementById("s3").textContent=tH>0?fmtCard(tH):"—";
+  document.getElementById("s4").textContent=tF>0?fmtCard(tF):"—";
+  document.getElementById("s5").textContent=tN>0?fmtCard(tN):"—";
+}
+
+// ═══════════════════════════════════════════
+// DETAIL TABLE
+// ═══════════════════════════════════════════
+function fillPfPicOpts(){
+  // Buat map: picOmset → Set of ketOmset
+  const picMap={};
+  allData.forEach(d=>{
+    const pic=d.picOmset;if(!pic)return;
+    if(!picMap[pic])picMap[pic]=new Set();
+    if(d.ketOmset)picMap[pic].add(d.ketOmset.trim());
+  });
+  // Buat label: "Nama PIC - KetOmset"
+  const picEntries=Object.keys(picMap).sort().map(pic=>{
+    const omsets=[...picMap[pic]].sort().join("/");
+    return{value:pic, label:omsets?`${pic} - ${omsets}`:pic};
+  });
+  // VS PIC Omset dropdowns
+  ["pf-pic-a","pf-pic-b"].forEach((id,idx)=>{
+    const sel=document.getElementById(id);
+    const prev=sel.value;
+    sel.innerHTML=`<option value="">— Pilih PIC —</option>`;
+    picEntries.forEach((entry,i)=>{
+      const o=document.createElement("option");
+      o.value=entry.value;
+      o.textContent=entry.label;
+      if(entry.value===prev)o.selected=true;
+      else if(!prev&&i===idx)o.selected=true;
+      sel.appendChild(o);
+    });
+  });
+  renderPicH2H();
+}
+
+function buildColHeaders(){
+  const tr=document.getElementById("colrow");tr.innerHTML="";
+  COLS.forEach((c,i)=>{
+    const th=document.createElement("th");th.textContent=c.lb;
+    if(c.ge)th.classList.add("ge");
+    th.onclick=()=>sortBy(i);tr.appendChild(th);
+  });
+}
+function fillFilters(){
+  const spt=new Set,sk=new Set,sc=new Set,ssd=new Set;
+  allData.forEach(d=>{
+    if(d.sumber)spt.add(d.sumber);if(d.kabKota)sk.add(d.kabKota);
+    if(d.cvPelaksana)sc.add(d.cvPelaksana);if(d.sumberDana)ssd.add(d.sumberDana);
+  });
+  fSel("fpt",[...spt].sort(),"Semua Sumber PT");fSel("fk",[...sk].sort(),"Semua Kab/Kota");
+  fSel("fc",[...sc].sort(),"Semua CV Pelaksana");fSel("fsd",[...ssd].sort(),"Semua Sumber Dana");
+}
+function fSel(id,opts,ph){
+  const el=document.getElementById(id);const cv=el.value;
+  el.innerHTML=`<option value="">${ph}</option>`;
+  opts.forEach(o=>{const op=document.createElement("option");op.value=o;op.textContent=o;if(o===cv)op.selected=true;el.appendChild(op);});
+}
+function applyF(){
+  const pt=document.getElementById("fpt").value,k=document.getElementById("fk").value,
+    c=document.getElementById("fc").value,sd=document.getElementById("fsd").value,
+    srch=document.getElementById("fsrch").value.toLowerCase();
+  filtData=allData.filter(d=>{
+    if(pt&&d.sumber!==pt)return false;if(k&&d.kabKota!==k)return false;
+    if(c&&d.cvPelaksana!==c)return false;if(sd&&d.sumberDana!==sd)return false;
+    if(srch){const h=[d.noPo,d.notaOld,d.notaErp,d.namaProd,d.cvPelaksana,d.namaPgd].join(" ").toLowerCase();if(!h.includes(srch))return false;}
+    return true;
+  });
+  document.getElementById("fcnt").textContent=`${filtData.length} entri`;
+  curPage=1;renderTable();
+}
+function resetF(){["fpt","fk","fc","fsd"].forEach(id=>document.getElementById(id).value="");document.getElementById("fsrch").value="";applyF();}
+function sortBy(ci){
+  if(sortI===ci)sortAsc=!sortAsc;else{sortI=ci;sortAsc=true;}
+  document.querySelectorAll(".colrow th").forEach((th,i)=>{
+    th.classList.toggle("sorted",i===ci);
+    th.textContent=th.textContent.replace(/[▲▼]/g,"").trim()+(i===ci?(sortAsc?" ▲":" ▼"):"");
+  });
+  const key=COLS[ci].k;
+  filtData.sort((a,b)=>{
+    const va=a[key]??"",vb=b[key]??"";
+    const nm=v=>v!==""&&!isNaN(parseFloat(String(v).replace(/[^0-9.-]/g,"")));
+    if(nm(va)&&nm(vb))return sortAsc?toNum(va)-toNum(vb):toNum(vb)-toNum(va);
+    return sortAsc?String(va).localeCompare(String(vb),"id"):String(vb).localeCompare(String(va),"id");
+  });
+  renderTable();
+}
+function rCell(col,val){
+  const s=String(val??"").trim();
+  if(col.mn){
+    if(!s)return`<span style="color:var(--txd)">—</span>`;
+    const n=toNum(s);if(n===0)return`<span style="color:var(--txd)">—</span>`;
+    if(Math.abs(n)>=1e9)return`<span style="color:var(--or)">Rp ${(n/1e9).toFixed(2)}M</span>`;
+    if(Math.abs(n)>=1e6)return`<span style="color:var(--or)">Rp ${(n/1e6).toFixed(1)}jt</span>`;
+    return`Rp ${n.toLocaleString("id-ID")}`;
+  }
+  return esc(s)||`<span style="color:var(--txd)">—</span>`;
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function renderTable(){
+  const st=(curPage-1)*pgSz,en=Math.min(st+pgSz,filtData.length),pg=filtData.slice(st,en);
+  const tb=document.getElementById("tbody");
+  if(!pg.length){tb.innerHTML=`<tr class="erow"><td colspan="${COLS.length}">Tidak ada data</td></tr>`;return;}
+  tb.innerHTML=pg.map(d=>`<tr>${COLS.map(c=>{
+    const cls=[c.mn?"mr":"",c.ge?"ge":"",c.tc?"tc":""].filter(Boolean).join(" ");
+    return`<td class="${cls}">${rCell(c,d[c.k])}</td>`;
+  }).join("")}</tr>`).join("");
+  renderPagi(st,en);
+}
+function renderPagi(st,en){
+  document.getElementById("pinfo").textContent=`Menampilkan ${Math.min(st+1,filtData.length)}–${en} dari ${filtData.length} entri`;
+  const tot=Math.ceil(filtData.length/pgSz),el=document.getElementById("pbtns");el.innerHTML="";
+  const add=(lb,pg,dis,act)=>{const b=document.createElement("button");b.className="pbtn"+(act?" active":"");b.textContent=lb;b.disabled=dis;b.onclick=()=>{curPage=pg;renderTable();};el.appendChild(b);};
+  add("‹",curPage-1,curPage===1);
+  for(let p=Math.max(1,curPage-2);p<=Math.min(tot,curPage+2);p++)add(p,p,false,p===curPage);
+  add("›",curPage+1,curPage===tot||tot===0);
+}
+function chgPS(){pgSz=parseInt(document.getElementById("rsel").value);curPage=1;renderTable();}
+
+// ═══════════════════════════════════════════
+// PERFORMA
+// ═══════════════════════════════════════════
+const PGP_LIST=["SR","REKANAN","BM","MP","PUSAT"];
+const PGP_COLOR={SR:"#388bfd",REKANAN:"#3fb950",BM:"#d29922",MP:"#8b5cf6",PUSAT:"#0891b2"};
+const PGP_ICON={SR:"🔵",REKANAN:"🟢",BM:"🟠",MP:"🟣",PUSAT:"⚪"};
+
+function getPgpData(val){
+  const rows=allData.filter(d=>String(d.ketPgp||"").trim().toUpperCase()===val.toUpperCase());
+  const noPoSet=new Set(rows.map(d=>d.noPo).filter(Boolean));
+  const kontrak=rows.reduce((s,d)=>s+toNum(d.totKontrakOngkir),0);
+  const allPts=[...new Set(allData.map(d=>d.sumber).filter(Boolean))].sort();
+  const perPt={};
+  allPts.forEach(pt=>{perPt[pt]={noPoSet:new Set(),kontrak:0};});
+  rows.forEach(d=>{
+    const pt=d.sumber;if(!pt)return;
+    if(!perPt[pt])perPt[pt]={noPoSet:new Set(),kontrak:0};
+    if(d.noPo)perPt[pt].noPoSet.add(d.noPo);
+    perPt[pt].kontrak+=toNum(d.totKontrakOngkir);
+  });
+  return{rows,noPoSet,kontrak,perPt,allPts};
+}
+
+function fmtCard(n){
+  if(n===0)return"—";
+  return n>=1e9?`Rp ${(n/1e9).toFixed(1)}M`:n>=1e6?`Rp ${(n/1e6).toFixed(0)}jt`:`Rp ${n.toLocaleString("id-ID")}`;
+}
+
+function renderPerforma(){
+  const selA=document.getElementById("pf-a").value;
+  const selB=document.getElementById("pf-b").value;
+  const colA=PGP_COLOR[selA]||"#388bfd";
+  const colB=PGP_COLOR[selB]||"#d29922";
+  const dA=getPgpData(selA), dB=getPgpData(selB);
+
+  // ── CARDS ──
+  const maxK=Math.max(dA.kontrak,dB.kontrak,1);
+  const maxP=Math.max(dA.noPoSet.size,dB.noPoSet.size,1);
+  const pctAK=Math.round(dA.kontrak/maxK*100), pctBK=Math.round(dB.kontrak/maxK*100);
+  const pctAP=Math.round(dA.noPoSet.size/maxP*100), pctBP=Math.round(dB.noPoSet.size/maxP*100);
+  const winK=dA.kontrak>dB.kontrak?selA:dB.kontrak>dA.kontrak?selB:"Seri";
+  const winP=dA.noPoSet.size>dB.noPoSet.size?selA:dB.noPoSet.size>dA.noPoSet.size?selB:"Seri";
+
+  function mkCard(label,data,col,pK,pP){
+    return`<div style="background:var(--sf);border:2px solid ${col};border-radius:var(--r);padding:18px 20px">
+      <div style="font-size:14px;font-weight:800;color:${col};margin-bottom:14px">${PGP_ICON[label]} ${label}</div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:9px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total Nilai Kontrak</div>
+        <div style="font-size:24px;font-weight:800;font-family:var(--m);color:${col};letter-spacing:-1px">${fmtCard(data.kontrak)}</div>
+        <div style="background:var(--bd2);border-radius:20px;height:7px;margin-top:8px;overflow:hidden">
+          <div style="background:${col};height:100%;width:${pK}%;border-radius:20px"></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:9px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total Pesanan (No. SP/PO)</div>
+        <div style="font-size:24px;font-weight:800;font-family:var(--m);color:${col};letter-spacing:-1px">${data.noPoSet.size.toLocaleString("id-ID")}</div>
+        <div style="background:var(--bd2);border-radius:20px;height:7px;margin-top:8px;overflow:hidden">
+          <div style="background:${col};height:100%;width:${pP}%;border-radius:20px"></div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function mkVs(){
+    const wK=winK===selA?colA:winK===selB?colB:"var(--txm)";
+    const wP=winP===selA?colA:winP===selB?colB:"var(--txm)";
+    return`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:8px 0">
+      <div style="font-size:30px;font-weight:900;color:var(--txd);letter-spacing:3px">VS</div>
+      <div style="text-align:center">
+        <div style="font-size:9px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Kontrak</div>
+        <div style="font-size:12px;font-weight:800;color:${wK}">${winK==="Seri"?"🤝 Seri":"🏆 "+winK}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:9px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Pesanan</div>
+        <div style="font-size:12px;font-weight:800;color:${wP}">${winP==="Seri"?"🤝 Seri":"🏆 "+winP}</div>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById("pf-cards").innerHTML=
+    mkCard(selA,dA,colA,pctAK,pctAP)+mkVs()+mkCard(selB,dB,colB,pctBK,pctBP);
+
+  // ── TABEL PER PT ──
+  function tblPt(data,label,col,elId,titleId){
+    document.getElementById(titleId).textContent=`${PGP_ICON[label]} ${label} — per Sumber PT`;
+    const pts=data.allPts.filter(pt=>data.perPt[pt]&&(data.perPt[pt].kontrak>0||data.perPt[pt].noPoSet.size>0));
+    pts.sort((a,b)=>data.perPt[b].kontrak-data.perPt[a].kontrak);
+    const totK=pts.reduce((s,pt)=>s+data.perPt[pt].kontrak,0);
+    const totP=data.noPoSet.size;
+    let html=`<thead><tr>
+      <th style="text-align:left">Sumber PT</th>
+      <th class="thdr" style="color:${col}">Pesanan</th>
+      <th class="thdr" style="color:${col}">Nilai Kontrak</th>
+      <th class="thdr">Porsi</th>
+    </tr></thead><tbody>`;
+    pts.forEach(pt=>{
+      const k=data.perPt[pt].kontrak, p=data.perPt[pt].noPoSet.size;
+      const pct=totK>0?Math.round(k/totK*100):0;
+      html+=`<tr>
+        <td style="font-family:var(--f);font-weight:500">${esc(pt)}</td>
+        <td>${p}</td><td>${fmtRp(k)}</td>
+        <td><div style="display:flex;align-items:center;gap:5px">
+          <div style="background:var(--bd2);border-radius:20px;height:5px;width:55px;overflow:hidden;flex-shrink:0">
+            <div style="background:${col};height:100%;width:${pct}%"></div>
+          </div>
+          <span style="font-size:10px;color:var(--txm)">${pct}%</span>
+        </div></td>
+      </tr>`;
+    });
+    html+=`<tr class="trow"><td>TOTAL</td><td>${totP}</td><td>${fmtTot(totK)}</td><td>100%</td></tr></tbody>`;
+    document.getElementById(elId).innerHTML=html;
+  }
+  tblPt(dA,selA,colA,"pf-table-a","pf-title-a");
+  tblPt(dB,selB,colB,"pf-table-b","pf-title-b");
+
+  // ── HEAD-TO-HEAD PER PIC OMSET ──
+  // Build per-PIC data for A and B
+  const picA={}, picB={};
+  dA.rows.forEach(d=>{
+    const pic=d.picOmset||"";if(!pic)return;
+    if(!picA[pic])picA[pic]={noPoSet:new Set(),kontrak:0};
+    if(d.noPo)picA[pic].noPoSet.add(d.noPo);
+    picA[pic].kontrak+=toNum(d.totKontrakOngkir);
+  });
+  dB.rows.forEach(d=>{
+    const pic=d.picOmset||"";if(!pic)return;
+    if(!picB[pic])picB[pic]={noPoSet:new Set(),kontrak:0};
+    if(d.noPo)picB[pic].noPoSet.add(d.noPo);
+    picB[pic].kontrak+=toNum(d.totKontrakOngkir);
+  });
+
+  // Semua PIC dari A dan B, filter jika dipilih
+  let allPicOmset=[...new Set([...Object.keys(picA),...Object.keys(picB)])].sort();
+  // Sort by total kontrak descending
+  allPicOmset.sort((a,b)=>((picA[b]?.kontrak||0)+(picB[b]?.kontrak||0))-((picA[a]?.kontrak||0)+(picB[a]?.kontrak||0)));
+
+  let h2h=`<thead><tr>
+    <th style="text-align:left">PIC Omset</th>
+    <th class="thdr" style="color:${colA}">${selA} — Pesanan</th>
+    <th class="thdr" style="color:${colA}">${selA} — Kontrak</th>
+    <th class="thdr" style="color:${colB}">${selB} — Pesanan</th>
+    <th class="thdr" style="color:${colB}">${selB} — Kontrak</th>
+    <th class="thdr">Unggul Kontrak</th>
+  </tr></thead><tbody>`;
+  let tAK=0,tBK=0,tAP=0,tBP=0;
+  allPicOmset.forEach(pic=>{
+    const ak=picA[pic]?.kontrak||0, ap=picA[pic]?.noPoSet.size||0;
+    const bk=picB[pic]?.kontrak||0, bp=picB[pic]?.noPoSet.size||0;
+    if(ak===0&&bk===0&&ap===0&&bp===0)return;
+    tAK+=ak;tBK+=bk;tAP+=ap;tBP+=bp;
+    const badge=ak>bk
+      ?`<span style="color:${colA};font-weight:700">🏆 ${selA}</span>`
+      :bk>ak
+      ?`<span style="color:${colB};font-weight:700">🏆 ${selB}</span>`
+      :`<span style="color:var(--txd)">🤝 Seri</span>`;
+    h2h+=`<tr>
+      <td style="font-family:var(--f);font-weight:500">${esc(pic)}</td>
+      <td style="color:${colA}">${ap}</td><td style="color:${colA}">${fmtRp(ak)}</td>
+      <td style="color:${colB}">${bp}</td><td style="color:${colB}">${fmtRp(bk)}</td>
+      <td>${badge}</td>
+    </tr>`;
+  });
+  if(allPicOmset.length===0){
+    h2h+=`<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--txd);font-family:var(--f)">Tidak ada data</td></tr>`;
+  }
+  const totBadge=tAK>tBK
+    ?`<span style="color:${colA};font-weight:700">🏆 ${selA}</span>`
+    :tBK>tAK
+    ?`<span style="color:${colB};font-weight:700">🏆 ${selB}</span>`
+    :`<span style="color:var(--txd)">🤝 Seri</span>`;
+  h2h+=`<tr class="trow">
+    <td>TOTAL</td>
+    <td>${tAP}</td><td>${fmtTot(tAK)}</td>
+    <td>${tBP}</td><td>${fmtTot(tBK)}</td>
+    <td>${totBadge}</td>
+  </tr></tbody>`;
+  document.getElementById("pf-h2h").innerHTML=h2h;
+
+  // ── RINGKASAN SEMUA PENGGARAP ──
+  const allD=PGP_LIST.map(v=>({v,d:getPgpData(v)}));
+  const grandK=allD.reduce((s,x)=>s+x.d.kontrak,0);
+  const grandP=allD.reduce((s,x)=>s+x.d.noPoSet.size,0);
+  let allHtml=`<thead><tr>
+    <th style="text-align:left">Ket Penggarap</th>
+    <th class="thdr">Total Pesanan</th>
+    <th class="thdr">Total Nilai Kontrak</th>
+    <th class="thdr">% Kontrak</th>
+    <th class="thdr">Rata-rata per Pesanan</th>
+  </tr></thead><tbody>`;
+  // Sort by kontrak descending
+  allD.sort((a,b)=>b.d.kontrak-a.d.kontrak).forEach(({v,d})=>{
+    const col=PGP_COLOR[v];
+    const pct=grandK>0?Math.round(d.kontrak/grandK*100):0;
+    const avg=d.noPoSet.size>0?Math.round(d.kontrak/d.noPoSet.size):0;
+    allHtml+=`<tr>
+      <td><span style="font-weight:800;color:${col}">${PGP_ICON[v]} ${v}</span></td>
+      <td>${d.noPoSet.size}</td>
+      <td>${fmtRp(d.kontrak)}</td>
+      <td><div style="display:flex;align-items:center;gap:6px">
+        <div style="background:var(--bd2);border-radius:20px;height:6px;width:80px;overflow:hidden;flex-shrink:0">
+          <div style="background:${col};height:100%;width:${pct}%"></div>
+        </div>
+        <span style="font-size:11px;color:${col};font-weight:700">${pct}%</span>
+      </div></td>
+      <td>${fmtRp(avg)}</td>
+    </tr>`;
+  });
+  allHtml+=`<tr class="trow"><td>TOTAL</td><td>${grandP}</td><td>${fmtTot(grandK)}</td><td>100%</td><td>${grandP>0?fmtTot(Math.round(grandK/grandP)):"—"}</td></tr></tbody>`;
+  document.getElementById("pf-all").innerHTML=allHtml;
+}
+
+// ═══════════════════════════════════════════
+// HEAD-TO-HEAD PIC OMSET (murni, tanpa filter Ket Penggarap)
+// ═══════════════════════════════════════════
+function renderPicH2H(){
+  const selA=document.getElementById("pf-pic-a")?.value;
+  const selB=document.getElementById("pf-pic-b")?.value;
+  const colA="#3fb950", colB="#ec4899";
+
+  const emptyCards=()=>{
+    document.getElementById("pic-h2h-cards").innerHTML=
+      `<div style="grid-column:1/-1;text-align:center;padding:28px;color:var(--txd);font-family:var(--f);font-size:12px">Pilih dua PIC Omset di atas untuk membandingkan.</div>`;
+    document.getElementById("pic-h2h-table-a").innerHTML="";
+    document.getElementById("pic-h2h-table-b").innerHTML="";
+    document.getElementById("pic-h2h-detail").innerHTML="";
+    document.getElementById("pic-h2h-title-a").textContent="—";
+    document.getElementById("pic-h2h-title-b").textContent="—";
+  };
+
+  if(!selA||!selB){emptyCards();return;}
+
+  // Filter murni by picOmset
+  const rowsA=allData.filter(d=>d.picOmset===selA);
+  const rowsB=allData.filter(d=>d.picOmset===selB);
+  const noPoA=new Set(rowsA.map(d=>d.noPo).filter(Boolean));
+  const noPoB=new Set(rowsB.map(d=>d.noPo).filter(Boolean));
+  const kontrakA=rowsA.reduce((s,d)=>s+toNum(d.totKontrakOngkir),0);
+  const kontrakB=rowsB.reduce((s,d)=>s+toNum(d.totKontrakOngkir),0);
+
+  // ── CARDS ──
+  const maxK=Math.max(kontrakA,kontrakB,1), maxP=Math.max(noPoA.size,noPoB.size,1);
+  const winK=kontrakA>kontrakB?selA:kontrakB>kontrakA?selB:"Seri";
+  const winP=noPoA.size>noPoB.size?selA:noPoB.size>noPoA.size?selB:"Seri";
+  function mkCard(label,rows,nopo,kontrak,col,pK,pP){
+    return`<div style="background:var(--sf);border:2px solid ${col};border-radius:var(--r);padding:18px 20px">
+      <div style="font-size:14px;font-weight:800;color:${col};margin-bottom:14px">👤 ${esc(label)}</div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:9px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total Nilai Kontrak</div>
+        <div style="font-size:24px;font-weight:800;font-family:var(--m);color:${col};letter-spacing:-1px">${fmtCard(kontrak)}</div>
+        <div style="background:var(--bd2);border-radius:20px;height:7px;margin-top:8px;overflow:hidden">
+          <div style="background:${col};height:100%;width:${pK}%"></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:9px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total Pesanan (No. SP/PO)</div>
+        <div style="font-size:24px;font-weight:800;font-family:var(--m);color:${col};letter-spacing:-1px">${nopo.size.toLocaleString("id-ID")}</div>
+        <div style="background:var(--bd2);border-radius:20px;height:7px;margin-top:8px;overflow:hidden">
+          <div style="background:${col};height:100%;width:${pP}%"></div>
+        </div>
+      </div>
+    </div>`;
+  }
+  function mkVs(){
+    const wKc=winK===selA?colA:winK===selB?colB:"var(--txm)";
+    const wPc=winP===selA?colA:winP===selB?colB:"var(--txm)";
+    return`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:8px 0">
+      <div style="font-size:30px;font-weight:900;color:var(--txd);letter-spacing:3px">VS</div>
+      <div style="text-align:center">
+        <div style="font-size:9px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Kontrak</div>
+        <div style="font-size:12px;font-weight:800;color:${wKc}">${winK==="Seri"?"🤝 Seri":"🏆 "+winK}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:9px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Pesanan</div>
+        <div style="font-size:12px;font-weight:800;color:${wPc}">${winP==="Seri"?"🤝 Seri":"🏆 "+winP}</div>
+      </div>
+    </div>`;
+  }
+  document.getElementById("pic-h2h-cards").innerHTML=
+    mkCard(selA,rowsA,noPoA,kontrakA,colA,Math.round(kontrakA/maxK*100),Math.round(noPoA.size/maxP*100))+
+    mkVs()+
+    mkCard(selB,rowsB,noPoB,kontrakB,colB,Math.round(kontrakB/maxK*100),Math.round(noPoB.size/maxP*100));
+
+  // ── TABEL PER SUMBER PT ──
+  const allPts=[...new Set(allData.map(d=>d.sumber).filter(Boolean))].sort();
+  function tblBySumber(rows,nopo,label,col,elId,titleId){
+    document.getElementById(titleId).textContent=`👤 ${label} — per Sumber PT`;
+    const ptMap={};
+    allPts.forEach(pt=>{ptMap[pt]={noPoSet:new Set(),kontrak:0};});
+    rows.forEach(d=>{
+      const pt=d.sumber;if(!pt)return;
+      if(d.noPo)ptMap[pt].noPoSet.add(d.noPo);
+      ptMap[pt].kontrak+=toNum(d.totKontrakOngkir);
+    });
+    const pts=allPts.filter(pt=>ptMap[pt].kontrak>0||ptMap[pt].noPoSet.size>0);
+    pts.sort((a,b)=>ptMap[b].kontrak-ptMap[a].kontrak);
+    const totK=pts.reduce((s,pt)=>s+ptMap[pt].kontrak,0);
+    let html=`<thead><tr>
+      <th style="text-align:left">Sumber PT</th>
+      <th class="thdr" style="color:${col}">Pesanan</th>
+      <th class="thdr" style="color:${col}">Nilai Kontrak</th>
+      <th class="thdr">Porsi</th>
+    </tr></thead><tbody>`;
+    pts.forEach(pt=>{
+      const k=ptMap[pt].kontrak,p=ptMap[pt].noPoSet.size;
+      const pct=totK>0?Math.round(k/totK*100):0;
+      html+=`<tr>
+        <td style="font-family:var(--f);font-weight:500">${esc(pt)}</td>
+        <td>${p}</td><td>${fmtRp(k)}</td>
+        <td><div style="display:flex;align-items:center;gap:5px">
+          <div style="background:var(--bd2);border-radius:20px;height:5px;width:55px;overflow:hidden;flex-shrink:0">
+            <div style="background:${col};height:100%;width:${pct}%"></div>
+          </div>
+          <span style="font-size:10px;color:var(--txm)">${pct}%</span>
+        </div></td>
+      </tr>`;
+    });
+    html+=`<tr class="trow"><td>TOTAL</td><td>${nopo.size}</td><td>${fmtTot(totK)}</td><td>100%</td></tr></tbody>`;
+    document.getElementById(elId).innerHTML=html;
+  }
+  tblBySumber(rowsA,noPoA,selA,colA,"pic-h2h-table-a","pic-h2h-title-a");
+  tblBySumber(rowsB,noPoB,selB,colB,"pic-h2h-table-b","pic-h2h-title-b");
+
+  // ── DETAIL PER KET PENGGARAP ──
+  const pgpMap={};
+  rowsA.forEach(d=>{const g=d.ketPgp||"(kosong)";if(!pgpMap[g])pgpMap[g]={A:{noPoSet:new Set(),kontrak:0},B:{noPoSet:new Set(),kontrak:0}};if(d.noPo)pgpMap[g].A.noPoSet.add(d.noPo);pgpMap[g].A.kontrak+=toNum(d.totKontrakOngkir);});
+  rowsB.forEach(d=>{const g=d.ketPgp||"(kosong)";if(!pgpMap[g])pgpMap[g]={A:{noPoSet:new Set(),kontrak:0},B:{noPoSet:new Set(),kontrak:0}};if(d.noPo)pgpMap[g].B.noPoSet.add(d.noPo);pgpMap[g].B.kontrak+=toNum(d.totKontrakOngkir);});
+  const pgps=Object.keys(pgpMap).sort((a,b)=>(pgpMap[b].A.kontrak+pgpMap[b].B.kontrak)-(pgpMap[a].A.kontrak+pgpMap[a].B.kontrak));
+  let det=`<thead><tr>
+    <th style="text-align:left">Ket Penggarap</th>
+    <th class="thdr" style="color:${colA}">${esc(selA)} — Pesanan</th>
+    <th class="thdr" style="color:${colA}">${esc(selA)} — Kontrak</th>
+    <th class="thdr" style="color:${colB}">${esc(selB)} — Pesanan</th>
+    <th class="thdr" style="color:${colB}">${esc(selB)} — Kontrak</th>
+    <th class="thdr">Unggul</th>
+  </tr></thead><tbody>`;
+  let tAK=0,tBK=0,tAP=0,tBP=0;
+  pgps.forEach(g=>{
+    const ak=pgpMap[g].A.kontrak,ap=pgpMap[g].A.noPoSet.size;
+    const bk=pgpMap[g].B.kontrak,bp=pgpMap[g].B.noPoSet.size;
+    tAK+=ak;tBK+=bk;tAP+=ap;tBP+=bp;
+    const pgpCol=PGP_COLOR[g.toUpperCase()]||"var(--txm)";
+    const badge=ak>bk?`<span style="color:${colA};font-weight:700">🏆 ${esc(selA)}</span>`
+      :bk>ak?`<span style="color:${colB};font-weight:700">🏆 ${esc(selB)}</span>`
+      :`<span style="color:var(--txd)">🤝 Seri</span>`;
+    det+=`<tr>
+      <td><span style="font-weight:700;color:${pgpCol}">${esc(g)}</span></td>
+      <td style="color:${colA}">${ap}</td><td style="color:${colA}">${fmtRp(ak)}</td>
+      <td style="color:${colB}">${bp}</td><td style="color:${colB}">${fmtRp(bk)}</td>
+      <td>${badge}</td>
+    </tr>`;
+  });
+  const totBadge=tAK>tBK?`<span style="color:${colA};font-weight:700">🏆 ${esc(selA)}</span>`
+    :tBK>tAK?`<span style="color:${colB};font-weight:700">🏆 ${esc(selB)}</span>`
+    :`<span style="color:var(--txd)">🤝 Seri</span>`;
+  det+=`<tr class="trow"><td>TOTAL</td><td>${tAP}</td><td>${fmtTot(tAK)}</td><td>${tBP}</td><td>${fmtTot(tBK)}</td><td>${totBadge}</td></tr></tbody>`;
+  document.getElementById("pic-h2h-detail").innerHTML=det;
+}
+
+// ═══════════════════════════════════════════
+// EXPORT FUNCTIONS
+// ═══════════════════════════════════════════
+
+// Export tabel (by table id) sebagai gambar PNG
+async function expImg(tableId, filename){
+  const tbl=document.getElementById(tableId);
+  if(!tbl){alert("Tabel tidak ditemukan.");return;}
+  const wrap=tbl.closest(".ptable-wrap")||tbl.parentElement;
+  try{
+    const canvas=await html2canvas(wrap,{
+      backgroundColor:"#161b22",
+      scale:2,
+      useCORS:true,
+      logging:false,
+    });
+    const a=document.createElement("a");
+    a.download=`${filename.replace(/[^a-zA-Z0-9\-_ ]/g,"")}.png`;
+    a.href=canvas.toDataURL("image/png");
+    a.click();
+  }catch(e){console.error(e);alert("Gagal export gambar: "+e.message);}
+}
+
+// Export tabel (by table id) sebagai Excel
+function expXls(tableId, filename){
+  const tbl=document.getElementById(tableId);
+  if(!tbl){alert("Tabel tidak ditemukan.");return;}
+  // Buat workbook dari tabel HTML (ambil teks bersih tanpa badge HTML)
+  const rows=[];
+  tbl.querySelectorAll("tr").forEach(tr=>{
+    const row=[];
+    tr.querySelectorAll("th,td").forEach(cell=>{
+      row.push(cell.innerText.trim());
+    });
+    rows.push(row);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  // Auto column width
+  const colWidths=rows[0]?.map((_,ci)=>({wch:Math.min(40,Math.max(10,...rows.map(r=>(r[ci]||"").length)))}));
+  ws["!cols"]=colWidths;
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,filename.substring(0,31));
+  XLSX.writeFile(wb,`${filename.replace(/[^a-zA-Z0-9\-_ ]/g,"")}.xlsx`);
+}
+
+// Export tabel rekap (body+head id) sebagai Excel
+function expXlsWrap(bodyId, filename, headId){
+  const head=document.getElementById(headId);
+  const body=document.getElementById(bodyId);
+  if(!head||!body){alert("Tabel tidak ditemukan.");return;}
+  const rows=[];
+  head.querySelectorAll("th").forEach(th=>rows[0]=(rows[0]||[]).concat([th.innerText.trim()]));
+  body.querySelectorAll("tr").forEach(tr=>{
+    const row=[];
+    tr.querySelectorAll("td").forEach(td=>row.push(td.innerText.trim()));
+    if(row.length)rows.push(row);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  const colWidths=rows[0]?.map((_,ci)=>({wch:Math.min(40,Math.max(10,...rows.map(r=>(r[ci]||"").length)))}));
+  ws["!cols"]=colWidths;
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,filename.substring(0,31));
+  XLSX.writeFile(wb,`${filename.replace(/[^a-zA-Z0-9\-_ ]/g,"")}.xlsx`);
+}
+
+// Export gambar dari wrap (body/section)
+async function expImgWrap(sectionId, filename){
+  const el=document.getElementById(sectionId);
+  const wrap=el?.closest(".twrap")||el?.parentElement;
+  if(!wrap){alert("Tidak ditemukan.");return;}
+  try{
+    const canvas=await html2canvas(wrap,{backgroundColor:"#161b22",scale:2,useCORS:true,logging:false});
+    const a=document.createElement("a");
+    a.download=`${filename.replace(/[^a-zA-Z0-9\-_ ]/g,"")}.png`;
+    a.href=canvas.toDataURL("image/png");
+    a.click();
+  }catch(e){alert("Gagal export: "+e.message);}
+}
+
+// Export semua data detail (filtData) sebagai Excel
+function expXlsFull(){
+  if(!filtData.length){alert("Tidak ada data untuk diexport.");return;}
+  const headers=COLS.map(c=>c.lb);
+  const rows=[headers,...filtData.map(d=>COLS.map(c=>{
+    const v=d[c.k]??"";
+    if(c.mn){const n=toNum(v);return n!==0?n:"";}
+    return v;
+  }))];
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  const colWidths=headers.map(h=>({wch:Math.min(40,Math.max(10,h.length+2))}));
+  ws["!cols"]=colWidths;
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Data Detail");
+  XLSX.writeFile(wb,"Data Detail Pesanan.xlsx");
+}
+
+window.onload=()=>initMsal().catch(console.error);
+</script>
+</body>
+</html>
