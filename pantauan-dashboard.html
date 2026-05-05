@@ -175,7 +175,19 @@ main{flex:1;padding:18px 20px}
 </head>
 <body>
 
-<div id="app" class="on">
+<div id="login" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 0%,#1f3a5c,#0d1117 60%)">
+  <div style="background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:40px 48px;max-width:420px;width:90%;text-align:center">
+    <div style="font-size:40px;margin-bottom:12px">📊</div>
+    <h1 style="font-size:20px;font-weight:800;margin-bottom:8px">Pantauan Pesanan Project</h1>
+    <p style="color:var(--txm);font-size:12px;margin-bottom:24px;line-height:1.6">Masuk dengan akun Microsoft untuk mengakses dashboard.<br>Gunakan akun Microsoft apapun — tidak harus akun OneDrive pemilik file.</p>
+    <button onclick="doLogin()" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px 18px;background:var(--bl);color:#fff;border:none;border-radius:var(--r);font-family:var(--f);font-size:13px;font-weight:600;cursor:pointer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23 23" width="18" height="18"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="12" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="12" width="10" height="10" fill="#00A4EF"/><rect x="12" y="12" width="10" height="10" fill="#FFB900"/></svg>
+      Masuk dengan Microsoft
+    </button>
+  </div>
+</div>
+
+<div id="app">
   <header>
     <div class="hl">
       <span style="font-size:18px">📊</span>
@@ -184,6 +196,11 @@ main{flex:1;padding:18px 20px}
     </div>
     <div class="hr">
       <button class="bi" onclick="reload()">↺ Refresh</button>
+      <div style="display:flex;align-items:center;gap:7px;background:var(--sf2);border:1px solid var(--bd);border-radius:20px;padding:4px 12px 4px 4px">
+        <div style="width:24px;height:24px;background:var(--bl);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700" id="uid">?</div>
+        <span style="font-size:11px;font-weight:600;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="uname">...</span>
+      </div>
+      <button class="bi" onclick="doLogout()">Keluar</button>
       <div style="font-size:10px;color:var(--txm);font-family:var(--m)" id="last-update"></div>
     </div>
   </header>
@@ -432,9 +449,11 @@ main{flex:1;padding:18px 20px}
 // KONFIGURASI
 // ═══════════════════════════════════════════
 const CFG = {
-  // Ganti dengan Direct Download URL dari OneDrive
-  // Cara dapat: OneDrive → klik (...) di file → Download → copy URL dari browser download bar
-  downloadUrl: "https://1drv.ms/x/c/22efebbd43d67397/IQDPh7Dag8E8R79_Pgg8uxsNAaCetAs9gEzlqNVqgUBd2G0?e=gaTqcG&download=1",
+  clientId  : "7c9e72bd-7c81-4e68-b8be-4bdbc93a6fb9",
+  authority : "https://login.microsoftonline.com/common",
+  redirectUri: "https://ppldatasalepro-hue.github.io/P2026/pantauan-dashboard.html",
+  // Share link OneDrive (Anyone with the link - No sign-in required)
+  shareLink : "https://1drv.ms/x/c/22efebbd43d67397/IQDPh7Dag8E8R79_Pgg8uxsNAaCetAs9gEzlqNVqgUBd2G0?e=gaTqcG",
   headerRow : 1,
   sheetName : "Pesanan_Gabungan",
 };
@@ -544,40 +563,82 @@ const REKAP_COLS = [
 const BULAN=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 const QM={Q1:[0,1,2],Q2:[3,4,5],Q3:[6,7,8],Q4:[9,10,11]};
 
+let msalApp=null;
 let allData=[], filtData=[], rekapData=[], filtRekapData=[];
 let curPage=1, pgSz=25, sortI=-1, sortAsc=true;
 let rkPage=1, rkPgSz=25, rkSortI=-1, rkSortAsc=true;
 
 // ═══════════════════════════════════════════
-// LOAD DATA via Share Link (tanpa login)
+// MSAL — login dengan akun Microsoft apapun
+// ═══════════════════════════════════════════
+async function initMsal(){
+  await new Promise((res,rej)=>{
+    const s=document.createElement("script");
+    s.src="https://alcdn.msauth.net/browser/2.38.1/js/msal-browser.min.js";
+    s.onload=res;s.onerror=rej;document.head.appendChild(s);
+  });
+  msalApp=new msal.PublicClientApplication({
+    auth:{clientId:CFG.clientId,authority:CFG.authority,redirectUri:CFG.redirectUri},
+    cache:{cacheLocation:"sessionStorage"}
+  });
+  await msalApp.initialize();
+  try{
+    const r=await msalApp.handleRedirectPromise();
+    if(r){showApp(r.account);loadData();}
+    else{
+      const ac=msalApp.getAllAccounts();
+      if(ac.length){showApp(ac[0]);loadData();}
+    }
+  }catch(e){console.error(e);}
+}
+
+async function doLogin(){
+  await msalApp.loginRedirect({scopes:["User.Read","Files.Read.All"]});
+}
+async function doLogout(){await msalApp.logoutRedirect();}
+
+function showApp(acc){
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").classList.add("on");
+  const n=acc.name||acc.username;
+  document.getElementById("uname").textContent=n;
+  document.getElementById("uid").textContent=n.charAt(0).toUpperCase();
+}
+
+async function getToken(){
+  const ac=msalApp.getAllAccounts();
+  if(!ac.length)throw new Error("Tidak ada akun aktif");
+  try{
+    const r=await msalApp.acquireTokenSilent({scopes:["Files.Read.All"],account:ac[0]});
+    return r.accessToken;
+  }catch(e){
+    const r=await msalApp.acquireTokenPopup({scopes:["Files.Read.All"],account:ac[0]});
+    return r.accessToken;
+  }
+}
+
+// ═══════════════════════════════════════════
+// LOAD DATA — via sharing link + token user
 // ═══════════════════════════════════════════
 async function loadData(){
   showSts("loading","Mengambil file Excel dari OneDrive...");
   try{
-    const proxies=[
-      u=>u, // direct
-      u=>`https://corsproxy.io/?url=${encodeURIComponent(u)}`,
-      u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-      u=>`https://cors-anywhere.herokuapp.com/${u}`,
-    ];
-    let buf=null, lastErr="";
-    for(const proxy of proxies){
-      try{
-        const url=proxy(CFG.downloadUrl);
-        const r=await fetch(url,{redirect:"follow"});
-        if(!r.ok){lastErr=`HTTP ${r.status}`;continue;}
-        const data=await r.arrayBuffer();
-        if(data.byteLength<1000){lastErr="File kosong/terlalu kecil";continue;}
-        buf=data; break;
-      }catch(e){lastErr=e.message;continue;}
+    const token=await getToken();
+    // Encode share link ke format Graph API sharing token
+    const encoded=btoa("u!"+CFG.shareLink)
+      .replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_");
+    const url=`https://graph.microsoft.com/v1.0/shares/${encoded}/root/content`;
+    const resp=await fetch(url,{headers:{Authorization:`Bearer ${token}`}});
+    if(!resp.ok){
+      const e=await resp.json().catch(()=>({}));
+      throw new Error(`Graph API ${resp.status}: ${e?.error?.message||resp.statusText}`);
     }
-    if(!buf) throw new Error(`Gagal mengambil file setelah beberapa percobaan. Error terakhir: ${lastErr}. Pastikan file OneDrive sudah diset ke "Anyone with the link - No sign-in required".`);
-
     showSts("loading","Memproses Excel...");
+    const buf=await resp.arrayBuffer();
     const wb=XLSX.read(buf,{type:"array",cellDates:true,raw:true});
     const sn=CFG.sheetName||wb.SheetNames[0];
     const ws=wb.Sheets[sn];
-    if(!ws)throw new Error(`Sheet "${sn}" tidak ditemukan. Sheet tersedia: ${wb.SheetNames.join(", ")}`);
+    if(!ws)throw new Error(`Sheet "${sn}" tidak ditemukan. Tersedia: ${wb.SheetNames.join(", ")}`);
     const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:true});
     parse(raw);
     const now=new Date();
@@ -1593,7 +1654,7 @@ function expXlsFull(){
   XLSX.writeFile(wb,"Data Detail Pesanan.xlsx");
 }
 
-window.onload=()=>loadData();
+window.onload=()=>initMsal().catch(console.error);
 </script>
 </body>
 </html>
