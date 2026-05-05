@@ -432,9 +432,8 @@ main{flex:1;padding:18px 20px}
 // KONFIGURASI
 // ═══════════════════════════════════════════
 const CFG = {
-  // Ganti dengan Direct Download URL dari OneDrive
-  // Cara dapat: OneDrive → klik (...) di file → Download → copy URL dari browser download bar
-  downloadUrl: "https://onedrive.live.com/personal/22efebbd43d67397/_layouts/15/download.aspx?UniqueId=dab087cf%2Dc183%2D473c%2Dbf7f%2D3e083cbb1b0d",
+  // Share link OneDrive (Anyone with the link - view only)
+  shareLink: "https://1drv.ms/x/c/22efebbd43d67397/IQDPh7Dag8E8R79_Pgg8uxsNAaCetAs9gEzlqNVqgUBd2G0?e=DBUQjR",
   headerRow : 1,
   sheetName : "Pesanan_Gabungan",
 };
@@ -554,30 +553,24 @@ let rkPage=1, rkPgSz=25, rkSortI=-1, rkSortAsc=true;
 async function loadData(){
   showSts("loading","Mengambil file Excel dari OneDrive...");
   try{
-    if(CFG.downloadUrl==="PASTE_DOWNLOAD_URL_DISINI")
-      throw new Error("Download URL belum diisi.");
-
-    // Coba langsung dulu, jika CORS error pakai proxy
-    let buf;
-    try{
-      const r=await fetch(CFG.downloadUrl);
-      if(!r.ok) throw new Error("direct_fail");
-      buf=await r.arrayBuffer();
-    }catch(_){
-      // Fallback ke CORS proxy
-      const proxy="https://corsproxy.io/?url="+encodeURIComponent(CFG.downloadUrl);
-      const r2=await fetch(proxy);
-      if(!r2.ok) throw new Error(`Gagal mengambil file (${r2.status}). Pastikan share link OneDrive sudah diset ke "Anyone with the link".`);
-      buf=await r2.arrayBuffer();
+    // Encode share link ke format Graph API sharing endpoint
+    const encoded=btoa("u!"+CFG.shareLink)
+      .replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_");
+    const url=`https://graph.microsoft.com/v1.0/shares/${encoded}/root/content`;
+    const resp=await fetch(url);
+    if(!resp.ok){
+      const e=await resp.json().catch(()=>({}));
+      throw new Error(`Graph API ${resp.status}: ${e?.error?.message||resp.statusText}`);
     }
-
     showSts("loading","Memproses Excel...");
+    const buf=await resp.arrayBuffer();
     const wb=XLSX.read(buf,{type:"array",cellDates:true,raw:true});
     const sn=CFG.sheetName||wb.SheetNames[0];
     const ws=wb.Sheets[sn];
-    if(!ws)throw new Error(`Sheet "${sn}" tidak ditemukan. Sheet tersedia: ${wb.SheetNames.join(", ")}`);
+    if(!ws)throw new Error(`Sheet "${sn}" tidak ditemukan. Tersedia: ${wb.SheetNames.join(", ")}`);
     const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:true});
     parse(raw);
+    // Tampilkan waktu update terakhir
     const now=new Date();
     document.getElementById("last-update").textContent=
       `Update: ${now.toLocaleDateString("id-ID")} ${now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"})}`;
