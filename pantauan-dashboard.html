@@ -175,32 +175,7 @@ main{flex:1;padding:18px 20px}
 </head>
 <body>
 
-<div id="login">
-  <div class="lcard">
-    <div style="font-size:36px;margin-bottom:10px">📊</div>
-    <h1>Pantauan Pesanan Project</h1>
-    <p>Masuk dengan akun Microsoft untuk mengakses data laporan dari OneDrive.</p>
-    <button class="btnms" onclick="doLogin()">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23 23"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="12" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="12" width="10" height="10" fill="#00A4EF"/><rect x="12" y="12" width="10" height="10" fill="#FFB900"/></svg>
-      Masuk dengan Microsoft
-    </button>
-  </div>
-</div>
-
-<div id="cfgm">
-  <div class="ccard">
-    <h2>⚙️ Konfigurasi File</h2>
-    <div class="cf"><label>Path File di OneDrive</label><input type="text" id="cfgp"/></div>
-    <div class="cf"><label>Baris Header (angka)</label><input type="number" id="cfgh"/></div>
-    <div class="cf"><label>Nama Sheet</label><input type="text" id="cfgs"/></div>
-    <div class="cacts">
-      <button class="btns" onclick="closeCfg()">Batal</button>
-      <button class="btnp" onclick="saveCfg()">Simpan & Muat</button>
-    </div>
-  </div>
-</div>
-
-<div id="app">
+<div id="app" class="on">
   <header>
     <div class="hl">
       <span style="font-size:18px">📊</span>
@@ -208,13 +183,8 @@ main{flex:1;padding:18px 20px}
       <span class="yb">2026</span>
     </div>
     <div class="hr">
-      <button class="bi" onclick="openCfg()">⚙️ Konfigurasi</button>
       <button class="bi" onclick="reload()">↺ Refresh</button>
-      <div class="up">
-        <div class="ua" id="uid">?</div>
-        <span class="un" id="uname">...</span>
-      </div>
-      <button class="bi" onclick="doLogout()">Keluar</button>
+      <div style="font-size:10px;color:var(--txm);font-family:var(--m)" id="last-update"></div>
     </div>
   </header>
 
@@ -462,12 +432,10 @@ main{flex:1;padding:18px 20px}
 // KONFIGURASI
 // ═══════════════════════════════════════════
 const CFG = {
-  clientId   : "7c9e72bd-7c81-4e68-b8be-4bdbc93a6fb9",
-  authority  : "https://login.microsoftonline.com/consumers",
-  redirectUri: "https://ppldatasalepro-hue.github.io/P2026/pantauan-dashboard.html",
-  filePath   : "/#DATABASEBASE/##PANTAUAN PESANAN PROJECT 2026/X/Rekapitulasi Pesanan Proyek 2026.xlsx",
-  headerRow  : 1,
-  sheetName  : "Pesanan_Gabungan",
+  // Share link OneDrive (Anyone with the link - view only)
+  shareLink: "https://1drv.ms/x/c/22efebbd43d67397/IQDPh7Dag8E8R79_Pgg8uxsNAaCetAs9gEzlqNVqgUBd2G0?e=dMhKTI",
+  headerRow : 1,
+  sheetName : "Pesanan_Gabungan",
 };
 
 // ═══════════════════════════════════════════
@@ -575,91 +543,21 @@ const REKAP_COLS = [
 const BULAN=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 const QM={Q1:[0,1,2],Q2:[3,4,5],Q3:[6,7,8],Q4:[9,10,11]};
 
-let msal_=null, allData=[], filtData=[], rekapData=[], filtRekapData=[];
+let allData=[], filtData=[], rekapData=[], filtRekapData=[];
 let curPage=1, pgSz=25, sortI=-1, sortAsc=true;
 let rkPage=1, rkPgSz=25, rkSortI=-1, rkSortAsc=true;
 
 // ═══════════════════════════════════════════
-// MSAL
+// LOAD DATA via Share Link (tanpa login)
 // ═══════════════════════════════════════════
-async function initMsal(){
-  await new Promise((res,rej)=>{
-    const s=document.createElement("script");
-    s.src="https://alcdn.msauth.net/browser/2.38.1/js/msal-browser.min.js";
-    s.onload=res;s.onerror=rej;document.head.appendChild(s);
-  });
-  msal_=new msal.PublicClientApplication({
-    auth:{clientId:CFG.clientId,authority:CFG.authority,redirectUri:CFG.redirectUri},
-    cache:{cacheLocation:"sessionStorage"}
-  });
-  await msal_.initialize();
-  try{
-    const r=await msal_.handleRedirectPromise();
-    if(r){showApp(r.account);loadData();}
-    else{const ac=msal_.getAllAccounts();if(ac.length){showApp(ac[0]);loadData();}}
-  }catch(e){console.error(e);}
-}
-
-async function doLogin(){
-  if(!msal_){alert("Refresh halaman.");return;}
-  if(CFG.clientId==="YOUR_CLIENT_ID_DARI_AZURE"){
-    alert("⚠️ Client ID belum diisi!\n\nBuka file HTML dengan Notepad, cari:\nclientId: \"YOUR_CLIENT_ID_DARI_AZURE\"\nGanti dengan Client ID dari Azure.");
-    return;
-  }
-  await msal_.loginRedirect({scopes:["User.Read","Files.Read.All"]});
-}
-async function doLogout(){await msal_.logoutRedirect();}
-
-function showApp(acc){
-  document.getElementById("login").style.display="none";
-  document.getElementById("app").classList.add("on");
-  const n=acc.name||acc.username;
-  document.getElementById("uname").textContent=n;
-  document.getElementById("uid").textContent=n.charAt(0).toUpperCase();
-}
-function showSts(type,msg){
-  const el=document.getElementById("sbar");
-  el.style.display="block";document.getElementById("dash").style.display="none";
-  el.innerHTML=type==="loading"
-    ?`<div class="spin"></div><div>${msg}</div>`
-    :`<div class="errm">❌ ${msg}<br><br><a onclick="openCfg()">Cek konfigurasi</a> | <a onclick="reload()">Coba lagi</a></div>`;
-}
-function showDash(){document.getElementById("sbar").style.display="none";document.getElementById("dash").style.display="block";}
-function openCfg(){
-  document.getElementById("cfgp").value=CFG.filePath;
-  document.getElementById("cfgh").value=CFG.headerRow;
-  document.getElementById("cfgs").value=CFG.sheetName;
-  document.getElementById("cfgm").classList.add("open");
-}
-function closeCfg(){document.getElementById("cfgm").classList.remove("open");}
-function saveCfg(){
-  CFG.filePath=document.getElementById("cfgp").value.trim();
-  CFG.headerRow=parseInt(document.getElementById("cfgh").value)||1;
-  CFG.sheetName=document.getElementById("cfgs").value.trim();
-  closeCfg();loadData();
-}
-function switchTab(t){
-  const tabs=["ringkasan","performa","rekap","detail"];
-  document.querySelectorAll(".tab").forEach((el,i)=>el.classList.toggle("active",tabs[i]===t));
-  tabs.forEach(id=>document.getElementById("tab-"+id).style.display=id===t?"block":"none");
-  if(t==="performa"&&allData.length)renderPerforma();
-}
-
-// ═══════════════════════════════════════════
-// LOAD DATA
-// ═══════════════════════════════════════════
-async function getToken(){
-  const ac=msal_.getAllAccounts();if(!ac.length)throw new Error("Tidak ada akun aktif");
-  const r=await msal_.acquireTokenSilent({scopes:["Files.Read.All"],account:ac[0]});
-  return r.accessToken;
-}
 async function loadData(){
   showSts("loading","Mengambil file Excel dari OneDrive...");
   try{
-    const token=await getToken();
-    const enc=CFG.filePath.replace(/#/g,"%23").replace(/ /g,"%20");
-    const resp=await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:${enc}:/content`,
-      {headers:{Authorization:`Bearer ${token}`}});
+    // Encode share link ke format Graph API sharing endpoint
+    const encoded=btoa("u!"+CFG.shareLink)
+      .replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_");
+    const url=`https://graph.microsoft.com/v1.0/shares/${encoded}/root/content`;
+    const resp=await fetch(url);
     if(!resp.ok){
       const e=await resp.json().catch(()=>({}));
       throw new Error(`Graph API ${resp.status}: ${e?.error?.message||resp.statusText}`);
@@ -672,9 +570,28 @@ async function loadData(){
     if(!ws)throw new Error(`Sheet "${sn}" tidak ditemukan. Tersedia: ${wb.SheetNames.join(", ")}`);
     const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:true});
     parse(raw);
+    // Tampilkan waktu update terakhir
+    const now=new Date();
+    document.getElementById("last-update").textContent=
+      `Update: ${now.toLocaleDateString("id-ID")} ${now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"})}`;
   }catch(e){console.error(e);showSts("error",e.message);}
 }
 function reload(){loadData();}
+
+function showSts(type,msg){
+  const el=document.getElementById("sbar");
+  el.style.display="block";document.getElementById("dash").style.display="none";
+  el.innerHTML=type==="loading"
+    ?`<div class="spin"></div><div>${msg}</div>`
+    :`<div class="errm">❌ ${msg}<br><br><a onclick="reload()">Coba lagi</a></div>`;
+}
+function showDash(){document.getElementById("sbar").style.display="none";document.getElementById("dash").style.display="block";}
+function switchTab(t){
+  const tabs=["ringkasan","performa","rekap","detail"];
+  document.querySelectorAll(".tab").forEach((el,i)=>el.classList.toggle("active",tabs[i]===t));
+  tabs.forEach(id=>document.getElementById("tab-"+id).style.display=id===t?"block":"none");
+  if(t==="performa"&&allData.length)renderPerforma();
+}
 
 // ═══════════════════════════════════════════
 // PARSE
@@ -1667,7 +1584,7 @@ function expXlsFull(){
   XLSX.writeFile(wb,"Data Detail Pesanan.xlsx");
 }
 
-window.onload=()=>initMsal().catch(console.error);
+window.onload=()=>loadData();
 </script>
 </body>
 </html>
