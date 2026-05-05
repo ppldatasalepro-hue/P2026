@@ -624,10 +624,10 @@ async function loadData(){
   showSts("loading","Mengambil file Excel dari OneDrive...");
   try{
     const token=await getToken();
-    // Encode share link ke format Graph API sharing token
-    const encoded=btoa("u!"+CFG.shareLink)
-      .replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_");
-    const url=`https://graph.microsoft.com/v1.0/shares/${encoded}/root/content`;
+    // Encode share link ke format Graph API — u! harus di depan SETELAH base64
+    const b64=btoa(CFG.shareLink).replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_");
+    const encoded="u!"+b64;
+    const url=`https://graph.microsoft.com/v1.0/shares/${encoded}/driveItem/content`;
     const resp=await fetch(url,{headers:{Authorization:`Bearer ${token}`}});
     if(!resp.ok){
       const e=await resp.json().catch(()=>({}));
