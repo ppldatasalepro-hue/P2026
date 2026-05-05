@@ -555,15 +555,27 @@ async function loadData(){
   showSts("loading","Mengambil file Excel dari OneDrive...");
   try{
     if(CFG.downloadUrl==="PASTE_DOWNLOAD_URL_DISINI")
-      throw new Error("Download URL belum diisi. Buka file HTML dengan Notepad, cari CFG.downloadUrl dan isi dengan URL download dari OneDrive.");
-    const resp=await fetch(CFG.downloadUrl);
-    if(!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+      throw new Error("Download URL belum diisi.");
+
+    // Coba langsung dulu, jika CORS error pakai proxy
+    let buf;
+    try{
+      const r=await fetch(CFG.downloadUrl);
+      if(!r.ok) throw new Error("direct_fail");
+      buf=await r.arrayBuffer();
+    }catch(_){
+      // Fallback ke CORS proxy
+      const proxy="https://corsproxy.io/?url="+encodeURIComponent(CFG.downloadUrl);
+      const r2=await fetch(proxy);
+      if(!r2.ok) throw new Error(`Gagal mengambil file (${r2.status}). Pastikan share link OneDrive sudah diset ke "Anyone with the link".`);
+      buf=await r2.arrayBuffer();
+    }
+
     showSts("loading","Memproses Excel...");
-    const buf=await resp.arrayBuffer();
     const wb=XLSX.read(buf,{type:"array",cellDates:true,raw:true});
     const sn=CFG.sheetName||wb.SheetNames[0];
     const ws=wb.Sheets[sn];
-    if(!ws)throw new Error(`Sheet "${sn}" tidak ditemukan. Tersedia: ${wb.SheetNames.join(", ")}`);
+    if(!ws)throw new Error(`Sheet "${sn}" tidak ditemukan. Sheet tersedia: ${wb.SheetNames.join(", ")}`);
     const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:true});
     parse(raw);
     const now=new Date();
