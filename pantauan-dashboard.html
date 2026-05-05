@@ -432,8 +432,9 @@ main{flex:1;padding:18px 20px}
 // KONFIGURASI
 // ═══════════════════════════════════════════
 const CFG = {
-  // Share link OneDrive (Anyone with the link - view only)
-  shareLink: "https://1drv.ms/x/c/22efebbd43d67397/IQDPh7Dag8E8R79_Pgg8uxsNAaCetAs9gEzlqNVqgUBd2G0?e=Peopfg",
+  // Ganti dengan Direct Download URL dari OneDrive
+  // Cara dapat: OneDrive → klik (...) di file → Download → copy URL dari browser download bar
+  downloadUrl: "https://1drv.ms/x/c/22efebbd43d67397/IQDPh7Dag8E8R79_Pgg8uxsNAaCetAs9gEzlqNVqgUBd2G0?e=gaTqcG&download=1",
   headerRow : 1,
   sheetName : "Pesanan_Gabungan",
 };
@@ -553,24 +554,32 @@ let rkPage=1, rkPgSz=25, rkSortI=-1, rkSortAsc=true;
 async function loadData(){
   showSts("loading","Mengambil file Excel dari OneDrive...");
   try{
-    // Encode share link ke format Graph API sharing endpoint
-    const encoded=btoa("u!"+CFG.shareLink)
-      .replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_");
-    const url=`https://graph.microsoft.com/v1.0/shares/${encoded}/root/content`;
-    const resp=await fetch(url);
-    if(!resp.ok){
-      const e=await resp.json().catch(()=>({}));
-      throw new Error(`Graph API ${resp.status}: ${e?.error?.message||resp.statusText}`);
+    const proxies=[
+      u=>u, // direct
+      u=>`https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+      u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+      u=>`https://cors-anywhere.herokuapp.com/${u}`,
+    ];
+    let buf=null, lastErr="";
+    for(const proxy of proxies){
+      try{
+        const url=proxy(CFG.downloadUrl);
+        const r=await fetch(url,{redirect:"follow"});
+        if(!r.ok){lastErr=`HTTP ${r.status}`;continue;}
+        const data=await r.arrayBuffer();
+        if(data.byteLength<1000){lastErr="File kosong/terlalu kecil";continue;}
+        buf=data; break;
+      }catch(e){lastErr=e.message;continue;}
     }
+    if(!buf) throw new Error(`Gagal mengambil file setelah beberapa percobaan. Error terakhir: ${lastErr}. Pastikan file OneDrive sudah diset ke "Anyone with the link - No sign-in required".`);
+
     showSts("loading","Memproses Excel...");
-    const buf=await resp.arrayBuffer();
     const wb=XLSX.read(buf,{type:"array",cellDates:true,raw:true});
     const sn=CFG.sheetName||wb.SheetNames[0];
     const ws=wb.Sheets[sn];
-    if(!ws)throw new Error(`Sheet "${sn}" tidak ditemukan. Tersedia: ${wb.SheetNames.join(", ")}`);
+    if(!ws)throw new Error(`Sheet "${sn}" tidak ditemukan. Sheet tersedia: ${wb.SheetNames.join(", ")}`);
     const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:true});
     parse(raw);
-    // Tampilkan waktu update terakhir
     const now=new Date();
     document.getElementById("last-update").textContent=
       `Update: ${now.toLocaleDateString("id-ID")} ${now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"})}`;
