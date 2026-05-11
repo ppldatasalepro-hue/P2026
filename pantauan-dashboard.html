@@ -435,7 +435,7 @@ main{flex:1;padding:18px 20px}
 const CFG = {
   // URL CSV dari Google Sheets (File → Share → Publish to web → CSV)
   // Ganti dengan URL milikmu setelah publish
-  csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQswVgPcyqOFYOj4PrcNb-TOJB37auk6vg51naDO61OHiF5vhwBEVbBxLDfyz2ZRDVho0w3vcqfVvLO/pub?gid=2106495550&single=true&output=csv",
+  csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQswVgPcyqOFYOj4PrcNb-TOJB37auk6vg51naDO61OHiF5vhwBEVbBxLDfyz2ZRDVho0w3vcqfVvLO/pub?gid=384722877&single=true&output=csv",
   headerRow: 1,
 };
 
@@ -555,26 +555,48 @@ async function loadData(){
   showSts("loading","Mengambil data dari Google Sheets...");
   try{
     if(CFG.csvUrl==="PASTE_GOOGLE_SHEETS_CSV_URL_DISINI")
-      throw new Error("Google Sheets URL belum diisi di file HTML.");
+      throw new Error("Google Sheets URL belum diisi.");
 
-    // Gunakan proxy untuk bypass CORS
-    const proxyUrl=`https://corsproxy.io/?url=${encodeURIComponent(CFG.csvUrl)}`;
-    const resp=await fetch(proxyUrl);
-    if(!resp.ok) throw new Error(`Gagal mengambil data: HTTP ${resp.status}`);
-    const csvText=await resp.text();
-    if(!csvText||csvText.trim().length<10)
-      throw new Error("Data kosong. Pastikan Google Sheets sudah di-publish.");
+    // Coba beberapa cara berurutan
+    const attempts=[
+      // 1. Direct (kadang berhasil tanpa proxy)
+      ()=>fetch(CFG.csvUrl),
+      // 2. allorigins
+      ()=>fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(CFG.csvUrl)}`),
+      // 3. corsproxy.io
+      ()=>fetch(`https://corsproxy.io/?url=${encodeURIComponent(CFG.csvUrl)}`),
+      // 4. thingproxy
+      ()=>fetch(`https://thingproxy.freeboard.io/fetch/${CFG.csvUrl}`),
+    ];
+
+    let csvText=null;
+    let lastErr="";
+    for(const attempt of attempts){
+      try{
+        const r=await attempt();
+        if(!r.ok){lastErr=`HTTP ${r.status}`;continue;}
+        const text=await r.text();
+        // Cek apakah yang diterima benar-benar CSV (bukan HTML error)
+        if(!text||text.trim().startsWith("<!DOCTYPE")||text.trim().startsWith("<html")){
+          lastErr="Bukan CSV (mungkin halaman error)";continue;
+        }
+        if(text.trim().length<10){lastErr="Data kosong";continue;}
+        csvText=text; break;
+      }catch(e){lastErr=e.message;continue;}
+    }
+
+    if(!csvText) throw new Error(
+      `Gagal mengambil data dari Google Sheets. Error: ${lastErr}\n\nPastikan Google Sheets sudah di-publish (File → Share → Publish to web).`
+    );
 
     showSts("loading","Memproses data...");
-
-    // Parse CSV dengan PapaParse
     const result=Papa.parse(csvText,{
       header:false,
       skipEmptyLines:true,
       dynamicTyping:false,
     });
     if(!result.data||result.data.length<2)
-      throw new Error("Format CSV tidak valid.");
+      throw new Error("Data CSV kosong atau tidak valid.");
 
     parse(result.data);
     const now=new Date();
